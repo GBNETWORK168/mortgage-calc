@@ -43,6 +43,7 @@
       max-width: 1080px;
       margin: 0 auto;
       padding: 28px 18px 56px;
+      overflow-x: hidden;
     }
     .hero {
       text-align: center;
@@ -100,6 +101,8 @@
       box-shadow: var(--shadow);
       padding: 24px 22px 26px;
       border: 1px solid rgba(26, 115, 176, 0.12);
+      max-width: 100%;
+      min-width: 0;
     }
     label {
       display: block;
@@ -172,7 +175,13 @@
       padding-bottom: 8px;
       border-bottom: 1px solid var(--line);
     }
-    .table-wrap { overflow: auto; margin-top: 4px; -webkit-overflow-scrolling: touch; }
+    .table-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      margin-top: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
     table.years {
       width: 100%;
       border-collapse: collapse;
