@@ -590,6 +590,66 @@
     @media (max-width: 380px) {
       .metrics { grid-template-columns: 1fr; }
     }
+
+    .script-tools {
+      display: grid;
+      gap: 10px 14px;
+      margin: 0 0 12px;
+    }
+    @media (min-width: 700px) {
+      .script-tools { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    }
+    .script-tools .field { margin-bottom: 0; }
+    .script-computed {
+      margin: 0 0 14px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .script-body { display: flex; flex-direction: column; gap: 10px; }
+    .script-sec {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--blue-deep);
+      letter-spacing: 0.06em;
+      margin: 6px 0 0;
+    }
+    .script-line {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+    .script-line.biz {
+      background: var(--sky-100);
+      border-left: 3px solid var(--blue);
+    }
+    .script-line.cli {
+      background: #f3f6f8;
+      border-left: 3px solid #8aa4b5;
+    }
+    .script-line .who {
+      display: inline-block;
+      font-weight: 700;
+      margin-right: 6px;
+      letter-spacing: 0.06em;
+    }
+    .script-line.biz .who { color: var(--blue-deep); }
+    .script-line.cli .who { color: #4E6E85; }
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+    .btn-copy {
+      width: auto;
+      padding: 9px 18px;
+      font-size: 0.92rem;
+      letter-spacing: 0.1em;
+    }
+    .btn-copy.copied {
+      background: linear-gradient(180deg, #3aa06a 0%, #1e7a4a 100%);
+      box-shadow: 0 8px 18px rgba(30, 122, 74, 0.22);
+    }
   </style>
 </head>
 <body>
@@ -799,6 +859,35 @@
         <p class="note">配息率非保證。</p>
       </section>
 
+      <section class="card" id="script-card">
+        <h2 class="section-title">話術稿</h2>
+        <div class="script-tools" id="script-tools">
+          <div class="field">
+            <label for="script-age">年紀（歲）</label>
+            <input id="script-age" type="number" inputmode="numeric" min="1" max="80" step="1" value="40">
+          </div>
+          <div class="field">
+            <label for="script-protect">保障配置（萬元）</label>
+            <input id="script-protect" type="number" inputmode="decimal" min="0" step="any" value="250">
+          </div>
+          <div class="field">
+            <label for="script-mult">壽險保額倍數</label>
+            <input id="script-mult" type="number" inputmode="decimal" min="0" step="any" value="4">
+          </div>
+          <div class="field">
+            <label for="script-cash-rate">現金流配息率（%）</label>
+            <input id="script-cash-rate" type="number" inputmode="decimal" min="0" step="any" value="8">
+          </div>
+        </div>
+        <p class="script-computed" id="script-computed"></p>
+        <p id="script-empty" class="placeholder hidden">請先完成上方房產價值與配息試算，即可帶出話術稿。</p>
+        <div id="script-body" class="script-body"></div>
+        <div class="copy-row">
+          <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
+        </div>
+        <p class="note" id="script-note">利率、配息率、現金流配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。</p>
+      </section>
+
       <div class="foot">
         <button type="button" class="linkish" id="logout">登出</button>
       </div>
@@ -942,7 +1031,174 @@
         close.classList.remove("short");
         closeX.textContent = "約 — 萬";
       }
+      updateScript();
     }
+
+    var protectFollowsDefault = true;
+    var lastScriptText = "";
+
+    function fmtWanBare(v) {
+      const r = Math.round(v * 10) / 10;
+      const opts = Number.isInteger(r)
+        ? { maximumFractionDigits: 0 }
+        : { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+      return r.toLocaleString("zh-TW", opts) + " 萬";
+    }
+
+    function scriptLinesToHtml(parts) {
+      return parts.map(function (p) {
+        if (p.sec) return '<p class="script-sec">' + p.sec + "</p>";
+        const cls = p.who === "業務" ? "biz" : "cli";
+        return '<p class="script-line ' + cls + '"><span class="who">' + p.who + "</span>" + p.text + "</p>";
+      }).join("");
+    }
+
+    function scriptLinesToText(parts) {
+      return parts.map(function (p) {
+        if (p.sec) return p.sec;
+        return p.who + "：" + p.text;
+      }).join("\n\n");
+    }
+
+    function updateScript() {
+      const body = document.getElementById("script-body");
+      const empty = document.getElementById("script-empty");
+      const hint = document.getElementById("script-computed");
+      const copyBtn = document.getElementById("copy-script");
+      if (!body) return;
+
+      const loanWan = parseFloat(document.getElementById("amount").value);
+      const annualPct = parseFloat(document.getElementById("rate").value);
+      const years = parseInt(document.getElementById("years").value, 10);
+      const divRatePct = parseFloat(document.getElementById("div-rate").value);
+      const ageEl = document.getElementById("script-age");
+      const protEl = document.getElementById("script-protect");
+      const multEl = document.getElementById("script-mult");
+      const cashRateEl = document.getElementById("script-cash-rate");
+
+      const loanOk = loanWan > 0 && isFinite(loanWan);
+      const rateOk = isFinite(annualPct) && annualPct >= 0;
+      const yearsOk = years === 20 || years === 30;
+      const mortOk = loanOk && rateOk && yearsOk;
+      const divRateOk = isFinite(divRatePct) && divRatePct > 0;
+
+      if (!mortOk || !divRateOk) {
+        body.innerHTML = "";
+        lastScriptText = "";
+        if (hint) hint.textContent = "";
+        if (empty) empty.classList.remove("hidden");
+        if (copyBtn) copyBtn.disabled = true;
+        return;
+      }
+      if (empty) empty.classList.add("hidden");
+      if (copyBtn) copyBtn.disabled = false;
+
+      const pay = monthlyPayment(loanWan * 10000, annualPct, years);
+      const yearYuan = Math.round(pay) * 12;
+      const needYuan = yearYuan / (divRatePct / 100);
+      const needWan = needYuan / 10000;
+      const insufficient = needYuan > loanWan * 10000 + 1e-9;
+      const leftoverWan = insufficient ? 0 : (loanWan * 10000 - needYuan) / 10000;
+      const propWan = loanWan / 0.8;
+
+      let age = parseInt(ageEl.value, 10);
+      if (!isFinite(age) || age < 1) age = 40;
+
+      let protectWan = parseFloat(protEl.value);
+      if (protectFollowsDefault && (document.activeElement !== protEl)) {
+        protectWan = Math.min(250, leftoverWan);
+        protEl.value = String(Math.round(protectWan * 10) / 10);
+      } else if (!isFinite(protectWan) || protectWan < 0) {
+        protectWan = 0;
+      }
+      if (protectWan > leftoverWan) protectWan = leftoverWan;
+
+      let mult = parseFloat(multEl.value);
+      if (!isFinite(mult) || mult < 0) mult = 4;
+      let cashRatePct = parseFloat(cashRateEl.value);
+      if (!isFinite(cashRatePct) || cashRatePct < 0) cashRatePct = 8;
+
+      const cashWan = Math.max(0, leftoverWan - protectWan);
+      const coverWan = protectWan * mult;
+      const cashYearYuan = cashWan * 10000 * (cashRatePct / 100);
+      const cashMonthYuan = cashYearYuan / 12;
+
+      let monthAt65Yuan = NaN;
+      if (age < 65 && cashYearYuan > 0) {
+        const nYr = 65 - age;
+        const fv = cashYearYuan * (Math.pow(1.06, nYr) - 1) / 0.06;
+        monthAt65Yuan = fv * (cashRatePct / 100) / 12;
+      }
+
+      if (hint) {
+        hint.textContent = "現金流配置 " + fmtWan(cashWan) + "（剩餘 − 保障配置）／壽險保額 " + fmtWanBare(coverWan);
+      }
+
+      const prop = fmtPropWan(propWan);
+      const loan = fmtWanBare(loanWan);
+      const rateS = fmtRatePct(annualPct);
+      const divS = fmtRatePct(divRatePct);
+      const payS = fmt(pay);
+      const yearS = fmt(yearYuan);
+      const yearWan = "約 " + fmtWanBare(yearYuan / 10000);
+      const need = "約 " + fmtWanBare(needWan);
+      const needYield = fmtWanBare(needWan * divRatePct / 100);
+      const left = "約 " + fmtWanBare(leftoverWan);
+      const prot = fmtWanBare(protectWan);
+      const cover = fmtWanBare(coverWan);
+      const cash = "約 " + fmtWanBare(cashWan);
+      const cashYear = fmt(cashYearYuan);
+      const cashMonth = fmt(cashMonthYuan);
+      const cashRateS = fmtRatePct(cashRatePct);
+
+      const parts = [];
+      function sec(s) { parts.push({ sec: s }); }
+      function biz(s) { parts.push({ who: "業務", text: s }); }
+      function cli(s) { parts.push({ who: "客戶", text: s }); }
+
+      sec("開場與房產活化概念");
+      biz("你知道我最近幫一個 " + age + " 歲的工程師做了一個東西叫房產活化，你有沒有聽過？不管有沒有，你待會聽聽看，只要給我大概 10 到 15 分鐘就好，你幫我想想看，如果你是這個工程師，你願不願意去做這件事情？好嗎？");
+      cli("好，好。");
+      biz("這個工程師有結婚。這間房子其實是繼承來的，在台中市。當初買的時候是 600 萬，經過 20 年之後，變成" + prop + "。我就問這個工程師，如果你的房子原本是 600 萬，雖然是無償取得，房貸也已經付完了，現在增值到" + prop + "，你覺得你有賺到錢嗎？");
+      cli("沒有啊，因為沒有賣就沒有賺。");
+      biz("那換到房子這邊來，取得成本 600 萬，現在市價" + prop + "，今天不賣掉叫沒有賺到錢；但是如果賣掉，我就沒有居住權，對吧？");
+      cli("對，因為現在" + prop + "要再買另外一間透天買不到了。");
+      biz("所以有一個方式你可以聽聽看。這個工程師結婚了，有一個小孩。現在這間房子估價" + prop + "，基本上能夠去貸款的金額大概是 8 成。");
+      cli("大概是 " + loan + "。");
+      biz("對，我就跟他說，" + loan + "貸出來，如果你不做任何理財規劃的話，你就不要做這件事情。貸出來肯定是要去做一些規劃。");
+
+      sec("方案一：" + loan + "配置與安全護城河");
+      biz(age + " 歲，貸款 " + loan + "、" + years + " 年，利率假設 " + rateS + "，本利攤還，一個月要還多少？我們先不談寬限期，避免太複雜。你幫我看一下。");
+      cli(payS + "。");
+      biz("好，12 個月大概多少？");
+      cli(yearS + "，" + yearWan + "。");
+      biz("好。原本我們沒有任何房貸，現在有房貸，我們一定要透過理財配置幫我們去付這筆錢，不要出到自己的錢。如果我去找一個 " + divS + " 投資報酬率的東西來幫我付，" + yearWan + "除以 " + divS + "，本金大概要多少？");
+      cli(need + "。");
+      biz(need + "乘以 " + divS + " 大概是 " + needYield + "，是不是房貸都可以付掉？那我用了" + need + "，是不是還有剩？");
+      cli(left + "。");
+
+      if (insufficient) {
+        biz("不過以目前的配息率，全數配置也無法打平房貸，可靈活運用的剩餘是" + left + "。我們先把月付與所需配置看清楚。");
+      } else {
+        biz("對！但因為我們有老婆跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，放 " + prot + "在終身倍數壽險，例如 PFK，這邊會有 " + cover + "的壽險保障。意思是如果真的有狀況，" + cover + "隨時可以把房貸還清，老婆小孩能繼續生活。那" + left + "減掉 " + prot + "，還剩多少？");
+        cli("大概 " + fmtWanBare(cashWan) + "。");
+        biz(cash + "如果放保守一點的標的，例如富蘭克林，配息算 " + cashRateS + "，一年大概有 " + cashYear + "，平均一個月大概有 " + cashMonth + "現金流！");
+
+        sec("效益總結與成交問句");
+        biz("如果這間房子你都不去動它，你的生活不會變好過也不會變難過。但是今天做了這件事情之後，第一，你不用自己掏錢付房貸，靠" + need + "的 " + divS + " 收益支付；第二，多了一層 " + cover + "的壽險保障護城河；第三，每個月多了 " + cashMonth + "現金流，一年大概 " + cashYear + "。");
+        if (isFinite(monthAt65Yuan)) {
+          biz("這 " + cashYear + "從 " + age + " 歲開始再去定期定額投資，到 65 歲時，現金流推估基本上會來到每個月 " + fmt(monthAt65Yuan) + "。好，如果是你，你願意做嗎？");
+        } else {
+          biz("好，如果是你，你願意做嗎？");
+        }
+        biz("這些我待會一個一個解釋，我們先把這件事情的整體架構講清楚。");
+        biz("……所以如果是你的房子，你願不願意做這件事？");
+      }
+
+      body.innerHTML = scriptLinesToHtml(parts);
+      lastScriptText = scriptLinesToText(parts);
+    }
+
     function recalcPropertyValue() {
       const loanWan = parseFloat(document.getElementById("amount").value);
       const near = document.getElementById("prop-input-val");
@@ -1228,6 +1484,50 @@
       if (e.key === "Enter" || e.key === " ") {
         const tr = e.target.closest("tr");
         if (tr) { e.preventDefault(); applyFund(tr.getAttribute("data-i")); }
+      }
+    });
+
+
+    document.getElementById("script-protect").addEventListener("input", function () {
+      protectFollowsDefault = false;
+      updateScript();
+    });
+    document.getElementById("script-protect").addEventListener("change", function () {
+      protectFollowsDefault = false;
+      updateScript();
+    });
+    ["script-age", "script-mult", "script-cash-rate"].forEach(function (id) {
+      const el = document.getElementById(id);
+      el.addEventListener("input", updateScript);
+      el.addEventListener("change", updateScript);
+    });
+    document.getElementById("copy-script").addEventListener("click", function () {
+      if (!lastScriptText) return;
+      const btn = this;
+      function done() {
+        btn.textContent = "已複製";
+        btn.classList.add("copied");
+        setTimeout(function () {
+          btn.textContent = "複製話術";
+          btn.classList.remove("copied");
+        }, 1600);
+      }
+      function fallback() {
+        const ta = document.createElement("textarea");
+        ta.value = lastScriptText;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lastScriptText).then(done).catch(function () { fallback(); done(); });
+      } else {
+        fallback();
+        done();
       }
     });
 
