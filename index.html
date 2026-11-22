@@ -259,6 +259,67 @@
       padding: 18px 8px;
       margin: 0;
     }
+    .dividend-block {
+      margin-top: 28px;
+    }
+    .result-card.div-card {
+      background: linear-gradient(180deg, #1A3550 0%, #102233 100%);
+    }
+    .gap-line {
+      margin: 14px 0 0;
+      padding: 11px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+    }
+    .gap-line.plus {
+      background: rgba(201, 164, 92, 0.22);
+      color: #F3E2B3;
+    }
+    .gap-line.minus {
+      background: rgba(180, 80, 70, 0.28);
+      color: #F6D0C8;
+    }
+    .gap-line.even {
+      background: rgba(255,255,255,0.08);
+      color: #E8D5A3;
+    }
+    .breakeven {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 12px 10px 11px;
+      text-align: center;
+    }
+    .breakeven b {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--gold-light);
+      letter-spacing: 0.06em;
+    }
+    .breakeven .pct {
+      display: block;
+      margin-top: 2px;
+      font-family: "Noto Serif TC", "Noto Sans TC", serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #FFF8E7;
+    }
+    .breakeven .amt {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.86);
+    }
+    .breakeven.warn .pct,
+    .breakeven.warn .amt {
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #F6D0C8;
+    }
     @media (max-width: 380px) {
       .metrics { grid-template-columns: 1fr; }
       h1 { font-size: 1.32rem; }
@@ -270,7 +331,7 @@
     <header class="app-head">
       <h1>房貸每月還款試算</h1>
       <div class="gold-rule"></div>
-      <p class="sub">本息平均攤還</p>
+      <p class="sub">本息平均攤還・配息試算</p>
     </header>
 
     <section id="login-card" class="card">
@@ -353,6 +414,43 @@
         <p class="note">以固定利率、無寬限期試算，實際以銀行核貸為準。</p>
       </div>
       <p id="empty" class="placeholder hidden">請輸入大於 0 的房貸金額。</p>
+
+      <div class="dividend-block" id="dividend-section">
+        <h2 class="section-title">配息試算</h2>
+        <div class="field">
+          <label for="div-principal">配置配息本金（萬元）</label>
+          <input id="div-principal" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
+        </div>
+        <div class="field">
+          <label for="div-rate">配息年化報酬率（%）</label>
+          <input id="div-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 6" value="6">
+        </div>
+        <div id="div-results">
+          <div class="result-card div-card">
+            <p class="result-label">每月配息</p>
+            <p class="result-amount" id="div-monthly">—</p>
+            <div class="metrics">
+              <div class="metric">
+                <b>每年配息</b>
+                <span id="div-yearly">—</span>
+              </div>
+              <div class="metric">
+                <b>對照房貸月付</b>
+                <span id="div-vs-pay">—</span>
+              </div>
+            </div>
+            <p id="div-gap" class="gap-line hidden"></p>
+            <div id="div-breakeven" class="breakeven hidden">
+              <b>打平房貸所需配置比例</b>
+              <span class="pct" id="div-breakeven-pct"></span>
+              <span class="amt" id="div-breakeven-amt"></span>
+            </div>
+          </div>
+          <p class="note">配息率非保證，實際以商品公告為準。</p>
+        </div>
+        <p id="div-empty" class="placeholder hidden">請輸入大於 0 的配置配息本金與年化報酬率。</p>
+      </div>
+
       <div class="foot">
         <button type="button" class="linkish" id="logout">登出</button>
       </div>
@@ -391,6 +489,7 @@
       if (!valid) {
         results.classList.add("hidden");
         empty.classList.remove("hidden");
+        recalcDividend(NaN, NaN);
         return;
       }
       empty.classList.add("hidden");
@@ -422,6 +521,97 @@
       document.querySelectorAll("#cmp-table tbody td:nth-child(" + col + ")").forEach(function (el) {
         el.classList.add("pick");
       });
+
+      recalcDividend(m, principal);
+    }
+
+    function fmtPct(v) {
+      return (Math.round(v * 10) / 10).toLocaleString("zh-TW", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      }) + "%";
+    }
+
+    function fmtWan(v) {
+      return "約 " + (Math.round(v * 10) / 10).toLocaleString("zh-TW", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      }) + " 萬";
+    }
+
+    function recalcDividend(monthlyMortgage, mortgagePrincipal) {
+      const divPrincipal = parseFloat(document.getElementById("div-principal").value) * 10000;
+      const divRatePct = parseFloat(document.getElementById("div-rate").value);
+      const divResults = document.getElementById("div-results");
+      const divEmpty = document.getElementById("div-empty");
+      const gapEl = document.getElementById("div-gap");
+      const beEl = document.getElementById("div-breakeven");
+      const bePct = document.getElementById("div-breakeven-pct");
+      const beAmt = document.getElementById("div-breakeven-amt");
+
+      const divValid = divPrincipal > 0 && isFinite(divPrincipal) && isFinite(divRatePct) && divRatePct >= 0;
+      const mortgageValid = isFinite(monthlyMortgage) && monthlyMortgage >= 0 && isFinite(mortgagePrincipal) && mortgagePrincipal > 0;
+      const rateValid = isFinite(divRatePct) && divRatePct > 0;
+      const canShowPanel = divValid || (mortgageValid && rateValid);
+
+      if (!canShowPanel) {
+        divResults.classList.add("hidden");
+        divEmpty.classList.remove("hidden");
+        return;
+      }
+      divEmpty.classList.add("hidden");
+      divResults.classList.remove("hidden");
+
+      if (divValid) {
+        const monthlyDiv = divPrincipal * (divRatePct / 100) / 12;
+        const yearlyDiv = divPrincipal * (divRatePct / 100);
+        document.getElementById("div-monthly").textContent = fmt(monthlyDiv);
+        document.getElementById("div-yearly").textContent = fmt(yearlyDiv);
+        if (mortgageValid) {
+          document.getElementById("div-vs-pay").textContent = fmt(monthlyMortgage);
+          const gap = Math.round(monthlyDiv) - Math.round(monthlyMortgage);
+          gapEl.classList.remove("hidden", "plus", "minus", "even");
+          if (gap > 0) {
+            gapEl.classList.add("plus");
+            gapEl.textContent = "每月可多出 " + gap.toLocaleString("zh-TW") + " 元";
+          } else if (gap < 0) {
+            gapEl.classList.add("minus");
+            gapEl.textContent = "每月還需自付 " + Math.abs(gap).toLocaleString("zh-TW") + " 元";
+          } else {
+            gapEl.classList.add("even");
+            gapEl.textContent = "每月剛好打平";
+          }
+        } else {
+          document.getElementById("div-vs-pay").textContent = "—";
+          gapEl.classList.add("hidden");
+          gapEl.textContent = "";
+        }
+      } else {
+        document.getElementById("div-monthly").textContent = "—";
+        document.getElementById("div-yearly").textContent = "—";
+        document.getElementById("div-vs-pay").textContent = mortgageValid ? fmt(monthlyMortgage) : "—";
+        gapEl.classList.add("hidden");
+        gapEl.textContent = "";
+      }
+
+      if (mortgageValid && rateValid) {
+        const pay = Math.round(monthlyMortgage);
+        const needYuan = (pay * 12) / (divRatePct / 100);
+        const ratio = needYuan / mortgagePrincipal;
+        beEl.classList.remove("hidden", "warn");
+        if (ratio > 1) {
+          beEl.classList.add("warn");
+          bePct.textContent = "全數配置也無法打平";
+          beAmt.textContent = "以目前配息率計約需 " + fmtPct(ratio * 100);
+        } else {
+          bePct.textContent = fmtPct(ratio * 100);
+          beAmt.textContent = "所需配置金額 " + fmtWan(needYuan / 10000);
+        }
+      } else {
+        beEl.classList.add("hidden");
+        bePct.textContent = "";
+        beAmt.textContent = "";
+      }
     }
 
     function showApp() {
@@ -465,7 +655,7 @@
       showLogin();
     });
 
-    ["amount", "rate", "years"].forEach(function (id) {
+    ["amount", "rate", "years", "div-principal", "div-rate"].forEach(function (id) {
       const el = document.getElementById(id);
       el.addEventListener("input", recalc);
       el.addEventListener("change", recalc);
