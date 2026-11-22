@@ -117,6 +117,32 @@
       background: #fff;
     }
     .field { margin-bottom: 16px; }
+    label.label-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .sync-link {
+      background: none;
+      border: 0;
+      padding: 0;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0;
+      color: var(--blue);
+      cursor: pointer;
+      text-decoration: underline;
+      white-space: nowrap;
+    }
+    .sync-link:hover { color: var(--blue-deep); }
+    .sync-hint {
+      margin: 6px 0 0;
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+    .sync-hint.off { display: none; }
     .btn {
       width: 100%;
       border: 0;
@@ -631,8 +657,9 @@
         <section class="card" id="dividend-section">
           <h2 class="section-title">配息試算</h2>
           <div class="field">
-            <label for="div-principal">配置配息本金（萬元）</label>
+            <label for="div-principal" class="label-row">配置配息本金（萬元） <button type="button" class="sync-link" id="sync-principal">同房貸金額</button></label>
             <input id="div-principal" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
+            <p class="sync-hint" id="sync-hint">隨房貸金額同步</p>
           </div>
           <div class="field">
             <label for="div-rate">配息年化報酬率（%）</label>
@@ -1122,10 +1149,45 @@
       showLogin();
     });
 
-    ["amount", "rate", "years", "div-principal", "div-rate"].forEach(function (id) {
+    let principalFollowsLoan = true;
+
+    function updateSyncHint() {
+      const hint = document.getElementById("sync-hint");
+      if (hint) hint.classList.toggle("off", !principalFollowsLoan);
+    }
+
+    function copyLoanToPrincipal() {
+      document.getElementById("div-principal").value = document.getElementById("amount").value;
+    }
+
+    ["rate", "years", "div-rate"].forEach(function (id) {
       const el = document.getElementById(id);
       el.addEventListener("input", recalc);
       el.addEventListener("change", recalc);
+    });
+    document.getElementById("amount").addEventListener("input", function () {
+      if (principalFollowsLoan) copyLoanToPrincipal();
+      recalc();
+    });
+    document.getElementById("amount").addEventListener("change", function () {
+      if (principalFollowsLoan) copyLoanToPrincipal();
+      recalc();
+    });
+    document.getElementById("div-principal").addEventListener("input", function () {
+      principalFollowsLoan = false;
+      updateSyncHint();
+      recalc();
+    });
+    document.getElementById("div-principal").addEventListener("change", function () {
+      principalFollowsLoan = false;
+      updateSyncHint();
+      recalc();
+    });
+    document.getElementById("sync-principal").addEventListener("click", function () {
+      principalFollowsLoan = true;
+      copyLoanToPrincipal();
+      updateSyncHint();
+      recalc();
     });
 
     document.querySelector("#fund-table tbody").addEventListener("click", function (e) {
