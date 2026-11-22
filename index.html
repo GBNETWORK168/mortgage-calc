@@ -379,43 +379,37 @@
       letter-spacing: 0.02em;
       line-height: 1.55;
     }
-    .avail {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 6px 12px;
-      margin: 0 0 14px;
-      padding: 12px 14px;
-      background: var(--sky-100);
-      border: 1px solid var(--sky-300);
-      border-radius: 10px;
+    .flex-funds {
+      margin: 12px 0 0;
+      padding-top: 12px;
+      border-top: 1px dashed rgba(232, 89, 12, 0.45);
+      text-align: center;
     }
-    .avail b {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--blue);
+    .flex-funds .flex-label {
+      display: block;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #9c3d0e;
       letter-spacing: 0.06em;
     }
-    .avail .amt {
-      font-weight: 800;
-      font-size: 1.55rem;
-      color: var(--blue-deep);
-      font-variant-numeric: tabular-nums;
-      letter-spacing: 0.02em;
-    }
-    .avail.neg {
-      background: var(--minus-bg);
-      border-color: #F0C0C0;
-    }
-    .avail.neg .amt { color: var(--minus); }
-    .avail .warn {
-      flex-basis: 100%;
-      margin: 0;
-      font-size: 0.8rem;
+    .flex-funds .flex-val {
+      display: block;
+      margin-top: 2px;
+      font-family: "Noto Serif TC", "Noto Sans TC", serif;
+      font-size: 1.7rem;
       font-weight: 700;
-      color: var(--minus);
+      line-height: 1.2;
+      color: #e8590c;
     }
+    .flex-funds.short .flex-val { color: #c92a2a; }
+    .flex-funds .flex-note {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #c92a2a;
+    }
+    .flex-funds .flex-note.hidden { display: none; }
     table.funds tbody tr { cursor: pointer; }
     table.funds tbody tr:hover { background: var(--sky-100); }
     table.funds tbody tr.selected {
@@ -470,7 +464,7 @@
 
     <div id="app" class="app-grid hidden">
       <section class="card" id="mortgage-card">
-        <h2 class="section-title">房貸試算</h2>
+        <h2 class="section-title">房產價值試算</h2>
         <div class="field">
           <label for="amount">房貸金額（萬元）</label>
           <input id="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
@@ -527,11 +521,6 @@
             <label for="div-rate">配息年化報酬率（%）</label>
             <input id="div-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 8" value="8">
           </div>
-          <div id="available-funds" class="avail">
-            <b>可運用資金</b>
-            <span class="amt" id="avail-amt">—</span>
-            <p class="warn hidden" id="avail-note">超出貸款金額</p>
-          </div>
           <div id="div-results">
             <div class="result-card">
               <p class="result-label">每月配息</p>
@@ -551,6 +540,11 @@
                 <b>打平房貸所需配置比例</b>
                 <span class="pct" id="div-breakeven-pct"></span>
                 <span class="amt" id="div-breakeven-amt"></span>
+                <p class="flex-funds" id="div-flex">
+                  <span class="flex-label">可靈活運用資金</span>
+                  <span class="flex-val" id="div-flex-val">—</span>
+                  <span class="flex-note hidden" id="div-flex-note">配息不足以打平</span>
+                </p>
               </div>
             </div>
             <p class="note">配息率非保證，實際以商品公告為準。</p>
@@ -637,7 +631,6 @@
     }
 
     function recalc() {
-      recalcAvailable();
       const principal = parseFloat(document.getElementById("amount").value) * 10000;
       const annualPct = parseFloat(document.getElementById("rate").value);
       const years = parseInt(document.getElementById("years").value, 10);
@@ -742,13 +735,23 @@
         const needYuan = (pay * 12) / (divRatePct / 100);
         const ratio = needYuan / mortgagePrincipal;
         beEl.classList.remove("hidden", "warn");
+        const flex = document.getElementById("div-flex");
+        const flexVal = document.getElementById("div-flex-val");
+        const flexNote = document.getElementById("div-flex-note");
         if (ratio > 1) {
           beEl.classList.add("warn");
           bePct.textContent = "全數配置也無法打平";
           beAmt.innerHTML = "以目前配息率計約需 <span class=\"amt-val\">" + fmtPct(ratio * 100) + "</span>";
+          flex.classList.add("short");
+          flexVal.textContent = "約 0.0 萬";
+          flexNote.classList.remove("hidden");
         } else {
           bePct.textContent = fmtPct(ratio * 100);
           beAmt.innerHTML = "所需配置金額 <span class=\"amt-val\">" + fmtWan(needYuan / 10000) + "</span>";
+          const leftoverWan = (mortgagePrincipal - needYuan) / 10000;
+          flex.classList.remove("short");
+          flexVal.textContent = fmtWan(leftoverWan);
+          flexNote.classList.add("hidden");
         }
       } else {
         beEl.classList.add("hidden");
@@ -766,29 +769,6 @@
       if (risk === "RR3") return "穩健型以上";
       if (risk === "RR4" || risk === "RR5") return "積極型";
       return "—";
-    }
-
-    function recalcAvailable() {
-      const loan = parseFloat(document.getElementById("amount").value) * 10000;
-      const allocated = parseFloat(document.getElementById("div-principal").value) * 10000;
-      const box = document.getElementById("available-funds");
-      const amt = document.getElementById("avail-amt");
-      const note = document.getElementById("avail-note");
-      if (!isFinite(loan) || !isFinite(allocated)) {
-        box.classList.remove("neg");
-        amt.textContent = "—";
-        note.classList.add("hidden");
-        return;
-      }
-      const avail = loan - allocated;
-      amt.textContent = fmt(avail);
-      if (avail < 0) {
-        box.classList.add("neg");
-        note.classList.remove("hidden");
-      } else {
-        box.classList.remove("neg");
-        note.classList.add("hidden");
-      }
     }
 
     function renderFunds() {
