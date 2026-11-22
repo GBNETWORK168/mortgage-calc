@@ -232,6 +232,37 @@
       background: rgba(26, 115, 176, 0.08);
       font-weight: 700;
     }
+    table.cmp tr.prop-row td {
+      background: var(--sky-100);
+      font-weight: 700;
+      color: var(--blue-deep);
+      border-bottom: 1px solid var(--line);
+    }
+    table.cmp tr.prop-row td:first-child { color: var(--blue-deep); }
+    table.cmp tr.prop-row td[colspan] { text-align: right; }
+    .prop-hint {
+      margin: 8px 0 0;
+      padding: 8px 10px;
+      background: var(--sky-100);
+      border-radius: 8px;
+      color: var(--blue-deep);
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+    .prop-hint strong {
+      display: inline;
+      margin-left: 4px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--blue-deep);
+    }
+    .prop-hint small {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.76rem;
+      font-weight: 400;
+      color: var(--muted);
+    }
     .note {
       margin: 16px 0 0;
       padding: 10px 12px;
@@ -468,6 +499,10 @@
         <div class="field">
           <label for="amount">房貸金額（萬元）</label>
           <input id="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
+          <p class="prop-hint">
+            房產價值（以貸款成數 8 成換算）<strong id="prop-input-val">約 1,250 萬</strong>
+            <small>以房貸可貸 8 成換算</small>
+          </p>
         </div>
         <div class="field">
           <label for="rate">房貸年利率（%）</label>
@@ -498,6 +533,10 @@
               </tr>
             </thead>
             <tbody>
+              <tr class="prop-row">
+                <td>房產價值（以貸款成數 8 成換算）</td>
+                <td colspan="2" id="prop-table-val">約 1,250 萬</td>
+              </tr>
               <tr>
                 <td>每月還款</td>
                 <td data-k="m20"></td>
@@ -618,6 +657,26 @@
         maximumFractionDigits: 1
       }) + " 萬";
     }
+    function fmtPropWan(v) {
+      const r = Math.round(v * 10) / 10;
+      const opts = Number.isInteger(r)
+        ? { maximumFractionDigits: 0 }
+        : { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+      return "約 " + r.toLocaleString("zh-TW", opts) + " 萬";
+    }
+    function recalcPropertyValue() {
+      const loanWan = parseFloat(document.getElementById("amount").value);
+      const near = document.getElementById("prop-input-val");
+      const cell = document.getElementById("prop-table-val");
+      if (!(loanWan > 0) || !isFinite(loanWan)) {
+        near.textContent = "—";
+        cell.textContent = "—";
+        return;
+      }
+      const text = fmtPropWan(loanWan / 0.8);
+      near.textContent = text;
+      cell.textContent = text;
+    }
     function perMillion(ratePct) {
       return Math.round(1000000 * (ratePct / 100) / 12);
     }
@@ -631,6 +690,7 @@
     }
 
     function recalc() {
+      recalcPropertyValue();
       const principal = parseFloat(document.getElementById("amount").value) * 10000;
       const annualPct = parseFloat(document.getElementById("rate").value);
       const years = parseInt(document.getElementById("years").value, 10);
@@ -661,14 +721,14 @@
       document.querySelectorAll("#cmp-table [data-k]").forEach(function (td) {
         td.textContent = map[td.getAttribute("data-k")];
       });
-      document.querySelectorAll("#cmp-table [data-y], #cmp-table td:nth-child(2), #cmp-table td:nth-child(3)").forEach(function (el) {
+      document.querySelectorAll("#cmp-table [data-y], #cmp-table tbody tr:not(.prop-row) td:nth-child(2), #cmp-table tbody tr:not(.prop-row) td:nth-child(3)").forEach(function (el) {
         el.classList.remove("pick");
       });
       document.querySelectorAll("#cmp-table th[data-y='" + years + "']").forEach(function (el) {
         el.classList.add("pick");
       });
       const col = years === 20 ? 2 : 3;
-      document.querySelectorAll("#cmp-table tbody td:nth-child(" + col + ")").forEach(function (el) {
+      document.querySelectorAll("#cmp-table tbody tr:not(.prop-row) td:nth-child(" + col + ")").forEach(function (el) {
         el.classList.add("pick");
       });
 
