@@ -275,40 +275,54 @@
     .gap-line.minus { background: var(--minus-bg); color: var(--minus); }
     .gap-line.even { background: var(--sky-200); color: var(--blue-deep); }
     .breakeven {
-      margin-top: 12px;
-      background: rgba(255,255,255,0.8);
-      border-radius: 10px;
-      padding: 12px 10px 11px;
+      margin-top: 16px;
+      background: #fff4e6;
+      border-radius: 14px;
+      padding: 16px 14px 18px;
       text-align: center;
-      border: 1px solid rgba(26, 115, 176, 0.08);
+      border: 2px solid #e8590c;
+      box-shadow: 0 8px 20px rgba(232, 89, 12, 0.14);
     }
     .breakeven b {
       display: block;
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--blue);
-      letter-spacing: 0.06em;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #9c3d0e;
+      letter-spacing: 0.08em;
     }
     .breakeven .pct {
       display: block;
-      margin-top: 2px;
+      margin: 4px 0 0;
       font-family: "Noto Serif TC", "Noto Sans TC", serif;
-      font-size: 1.35rem;
+      font-size: 2.8rem;
       font-weight: 700;
-      color: var(--blue-deep);
+      line-height: 1.15;
+      color: #e8590c;
     }
-    .breakeven.warn .pct,
-    .breakeven.warn .amt {
-      font-family: "Noto Sans TC", sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--minus);
+    @media (min-width: 768px) {
+      .breakeven .pct { font-size: 3.4rem; }
     }
     .breakeven .amt {
       display: block;
-      margin-top: 2px;
-      font-size: 0.9rem;
-      color: var(--muted);
+      margin-top: 8px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #5c3a1e;
+    }
+    .breakeven .amt .amt-val { color: #e8590c; }
+    .breakeven.warn {
+      border-color: #c92a2a;
+      box-shadow: 0 8px 20px rgba(201, 42, 42, 0.12);
+    }
+    .breakeven.warn .pct {
+      font-family: "Noto Sans TC", sans-serif;
+      font-size: 1.5rem;
+      color: #c92a2a;
+    }
+    .breakeven.warn .amt,
+    .breakeven.warn .amt .amt-val {
+      font-size: 1.1rem;
+      color: #c92a2a;
     }
     .app-grid { display: grid; gap: 18px; }
     .split {
@@ -384,10 +398,11 @@
       letter-spacing: 0.06em;
     }
     .avail .amt {
-      font-weight: 700;
-      font-size: 1.05rem;
+      font-weight: 800;
+      font-size: 1.55rem;
       color: var(--blue-deep);
       font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
     }
     .avail.neg {
       background: var(--minus-bg);
@@ -735,10 +750,10 @@
         if (ratio > 1) {
           beEl.classList.add("warn");
           bePct.textContent = "全數配置也無法打平";
-          beAmt.textContent = "以目前配息率計約需 " + fmtPct(ratio * 100);
+          beAmt.innerHTML = "以目前配息率計約需 <span class=\"amt-val\">" + fmtPct(ratio * 100) + "</span>";
         } else {
           bePct.textContent = fmtPct(ratio * 100);
-          beAmt.textContent = "所需配置金額 " + fmtWan(needYuan / 10000);
+          beAmt.innerHTML = "所需配置金額 <span class=\"amt-val\">" + fmtWan(needYuan / 10000) + "</span>";
         }
       } else {
         beEl.classList.add("hidden");
