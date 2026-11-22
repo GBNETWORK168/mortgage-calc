@@ -138,7 +138,10 @@
       gap: 4px 16px;
     }
     @media (min-width: 700px) {
-      .inputs { grid-template-columns: 1fr 1fr 1fr; }
+      .inputs { grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 980px) {
+      .inputs { grid-template-columns: 1fr 1fr 1fr 1fr; }
     }
     .btn {
       width: 100%;
@@ -259,6 +262,11 @@
       color: #5c3a1e;
     }
     .breakeven .amt .amt-val { color: #e8590c; }
+    .fee-note {
+      margin: 10px 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
     .note {
       margin: 16px 0 0;
       padding: 10px 12px;
@@ -345,6 +353,10 @@
             <label for="age">年紀（歲）</label>
             <input id="age" type="number" inputmode="numeric" min="1" max="65" step="1" placeholder="例如 30" value="30">
           </div>
+          <div class="field">
+            <label for="fee">回存手續費（%）</label>
+            <input id="fee" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 5" value="5">
+          </div>
         </div>
 
         <div id="results">
@@ -361,7 +373,7 @@
                 <tr>
                   <th>年紀</th>
                   <th>累積年數</th>
-                  <th>本金（含回存）</th>
+                  <th>實際投入本金</th>
                   <th>每年配息</th>
                   <th>每月配息</th>
                 </tr>
@@ -369,9 +381,10 @@
               <tbody></tbody>
             </table>
           </div>
+          <p class="fee-note" id="fee-note">每年配息回存扣除 5% 手續費</p>
           <p class="note">配息率非保證，未計匯率與淨值變動，僅供試算參考。</p>
         </div>
-        <p id="empty" class="placeholder hidden">請輸入大於 0 的本金，以及 1 到 65 歲的年紀。</p>
+        <p id="empty" class="placeholder hidden">請輸入大於 0 的本金、0 以上的配息率與回存手續費，以及 1 到 65 歲的年紀。</p>
       </section>
 
       <div class="foot">
@@ -406,10 +419,15 @@
       return ages;
     }
 
+    function fmtFeePct(v) {
+      return String(parseFloat(Number(v).toFixed(4))) + "%";
+    }
+
     function recalc() {
       const principalWan = parseFloat(document.getElementById("principal").value);
       const ratePct = parseFloat(document.getElementById("rate").value);
       const startAge = parseInt(document.getElementById("age").value, 10);
+      const feePct = parseFloat(document.getElementById("fee").value);
       const results = document.getElementById("results");
       const empty = document.getElementById("empty");
       const tbody = document.querySelector("#year-table tbody");
@@ -417,8 +435,9 @@
       const okPrincipal = isFinite(principalWan) && principalWan > 0;
       const okRate = isFinite(ratePct) && ratePct >= 0;
       const okAge = isFinite(startAge) && startAge >= 1 && startAge <= 65;
+      const okFee = isFinite(feePct) && feePct >= 0;
 
-      if (!okPrincipal || !okRate || !okAge) {
+      if (!okPrincipal || !okRate || !okAge || !okFee) {
         results.classList.add("hidden");
         empty.classList.remove("hidden");
         tbody.innerHTML = "";
@@ -429,13 +448,15 @@
       results.classList.remove("hidden");
 
       const rate = ratePct / 100;
+      const netFactor = 1 + rate * (1 - feePct / 100);
       const rows = rowAges(startAge);
       var html = "";
       var at65 = null;
 
       rows.forEach(function (age) {
         const n = age - startAge;
-        const balWan = principalWan * Math.pow(1 + rate, n);
+        // balance(n+1) = balance(n) + balance(n)×rate×(1−fee)
+        const balWan = principalWan * Math.pow(netFactor, n);
         const yearly = balWan * 10000 * rate;
         const monthly = yearly / 12;
         const is65 = age === 65;
@@ -450,6 +471,7 @@
       });
 
       tbody.innerHTML = html;
+      document.getElementById("fee-note").textContent = "每年配息回存扣除 " + fmtFeePct(feePct) + " 手續費";
       if (at65) {
         document.getElementById("sum65-principal").textContent = "本金" + fmtWan(at65.balWan);
         document.getElementById("sum65-monthly").textContent = fmtYuan(at65.monthly);
@@ -497,7 +519,7 @@
       showLogin();
     });
 
-    ["principal", "rate", "age"].forEach(function (id) {
+    ["principal", "rate", "age", "fee"].forEach(function (id) {
       const el = document.getElementById(id);
       el.addEventListener("input", recalc);
       el.addEventListener("change", recalc);
