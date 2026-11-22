@@ -117,6 +117,13 @@
       background: #fff;
     }
     .field { margin-bottom: 16px; }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .field-row .field { margin-bottom: 0; }
     label.label-row {
       display: flex;
       align-items: baseline;
@@ -597,7 +604,7 @@
       margin: 0 0 12px;
     }
     @media (min-width: 700px) {
-      .script-tools { grid-template-columns: 1fr 1fr 1fr 1fr; }
+      .script-tools { grid-template-columns: 1fr 1fr 1fr; }
     }
     .script-tools .field { margin-bottom: 0; }
     .script-computed {
@@ -708,6 +715,20 @@
             <option value="20">20 年</option>
             <option value="30" selected>30 年</option>
           </select>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="client-age">年紀（歲）</label>
+            <input id="client-age" type="number" inputmode="numeric" min="0" max="80" step="1" value="30">
+          </div>
+          <div class="field">
+            <label for="client-gender">性別</label>
+            <select id="client-gender">
+              <option value="女" selected>女</option>
+              <option value="男">男</option>
+            </select>
+          </div>
         </div>
 
         <div id="results">
@@ -863,16 +884,12 @@
         <h2 class="section-title">話術稿</h2>
         <div class="script-tools" id="script-tools">
           <div class="field">
-            <label for="script-age">年紀（歲）</label>
-            <input id="script-age" type="number" inputmode="numeric" min="1" max="80" step="1" value="40">
-          </div>
-          <div class="field">
             <label for="script-protect">保障配置（萬元）</label>
             <input id="script-protect" type="number" inputmode="decimal" min="0" step="any" value="250">
           </div>
           <div class="field">
             <label for="script-mult">壽險保額倍數</label>
-            <input id="script-mult" type="number" inputmode="decimal" min="0" step="any" value="4">
+            <input id="script-mult" type="number" inputmode="decimal" min="0" step="0.01" value="7.30">
           </div>
           <div class="field">
             <label for="script-cash-rate">現金流配息率（%）</label>
@@ -885,7 +902,7 @@
         <div class="copy-row">
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
         </div>
-        <p class="note" id="script-note">利率、配息率、現金流配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。</p>
+        <p class="note" id="script-note">利率、配息率、現金流配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。倍數來源：PFK 試算網站，第10保單年度（躉繳、中分紅；以保額 10 萬美元、金融機構轉帳試算）。實際倍數依保額、繳費年期與繳費方式可能略有差異，紅利非保證。</p>
       </section>
 
       <div class="foot">
@@ -910,6 +927,30 @@
       {code:"ACB17", name:"聯博房貸收益 AA月配", rate:8.20, risk:"RR3"},
       {code:"FRB5", name:"富蘭克林全球債券 A(Mdis)", rate:6.95, risk:"RR2"}
     ];
+
+    const PFK_Y10 = {
+      term: 1,
+      termName: "躉繳",
+      sc: 2,
+      scLabel: "中分紅",
+      faceAmt: 10,
+      minAge: 0,
+      maxAge: 80,
+      "女": [22.01,21.18,20.44,19.68,18.97,18.28,17.62,16.99,16.37,15.78,15.23,14.68,14.14,13.64,13.14,12.67,12.21,11.77,11.34,10.93,10.53,10.15,9.79,9.43,9.10,8.77,8.45,8.14,7.85,7.57,7.30,7.04,6.79,6.55,6.32,6.09,5.88,5.67,5.46,5.27,5.08,4.89,4.71,4.54,4.37,4.21,4.05,3.90,3.76,3.62,3.49,3.36,3.23,3.11,3.00,2.89,2.78,2.68,2.58,2.49,2.40,2.31,2.23,2.15,2.07,2.00,1.93,1.86,1.79,1.73,1.67,1.58,1.49,1.41,1.40,1.37,1.37,1.36,1.35,1.34,1.33],
+      "男": [16.73,16.12,15.54,14.98,14.45,13.93,13.43,12.96,12.50,12.06,11.61,11.21,10.82,10.44,10.07,9.72,9.38,9.05,8.73,8.42,8.12,7.83,7.56,7.29,7.03,6.78,6.55,6.32,6.10,5.89,5.68,5.49,5.30,5.12,4.95,4.78,4.61,4.46,4.31,4.16,4.02,3.88,3.75,3.62,3.49,3.37,3.26,3.14,3.04,2.93,2.83,2.74,2.65,2.56,2.48,2.40,2.32,2.24,2.17,2.10,2.03,1.96,1.90,1.84,1.78,1.72,1.66,1.61,1.55,1.50,1.45,1.39,1.39,1.38,1.37,1.35,1.34,1.34,1.33,1.32,1.32]
+    };
+    function pfkYear10Mult(age, gender) {
+      const table = PFK_Y10[gender === "男" ? "男" : "女"];
+      if (!Number.isInteger(age) || age < PFK_Y10.minAge || age > PFK_Y10.maxAge || !table) return null;
+      const v = table[age];
+      return (v == null) ? null : v;
+    }
+    function fmtMult(v) {
+      return (Math.round(v * 100) / 100).toLocaleString("zh-TW", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
 
     const loginCard = document.getElementById("login-card");
     const app = document.getElementById("app");
@@ -1035,6 +1076,7 @@
     }
 
     var protectFollowsDefault = true;
+    var multFollowsPfk = true;
     var lastScriptText = "";
 
     function fmtWanBare(v) {
@@ -1071,7 +1113,8 @@
       const annualPct = parseFloat(document.getElementById("rate").value);
       const years = parseInt(document.getElementById("years").value, 10);
       const divRatePct = parseFloat(document.getElementById("div-rate").value);
-      const ageEl = document.getElementById("script-age");
+      const ageEl = document.getElementById("client-age");
+      const genderEl = document.getElementById("client-gender");
       const protEl = document.getElementById("script-protect");
       const multEl = document.getElementById("script-mult");
       const cashRateEl = document.getElementById("script-cash-rate");
@@ -1101,8 +1144,10 @@
       const leftoverWan = insufficient ? 0 : (loanWan * 10000 - needYuan) / 10000;
       const propWan = loanWan / 0.8;
 
-      let age = parseInt(ageEl.value, 10);
-      if (!isFinite(age) || age < 1) age = 40;
+      let age = parseInt(ageEl && ageEl.value, 10);
+      if (!isFinite(age) || age < 0) age = 30;
+      const gender = (genderEl && genderEl.value === "男") ? "男" : "女";
+      const pfkMult = pfkYear10Mult(age, gender);
 
       let protectWan = parseFloat(protEl.value);
       if (protectFollowsDefault && (document.activeElement !== protEl)) {
@@ -1113,8 +1158,16 @@
       }
       if (protectWan > leftoverWan) protectWan = leftoverWan;
 
-      let mult = parseFloat(multEl.value);
-      if (!isFinite(mult) || mult < 0) mult = 4;
+      let mult;
+      if (multFollowsPfk && pfkMult != null && (document.activeElement !== multEl)) {
+        mult = pfkMult;
+        if (multEl) multEl.value = String(pfkMult);
+      } else {
+        mult = parseFloat(multEl.value);
+        if (!isFinite(mult) || mult < 0) {
+          mult = (pfkMult != null) ? pfkMult : 0;
+        }
+      }
       let cashRatePct = parseFloat(cashRateEl.value);
       if (!isFinite(cashRatePct) || cashRatePct < 0) cashRatePct = 8;
 
@@ -1131,7 +1184,15 @@
       }
 
       if (hint) {
-        hint.textContent = "現金流配置 " + fmtWan(cashWan) + "（剩餘 − 保障配置）／壽險保額 " + fmtWanBare(coverWan);
+        let hintText = "現金流配置 " + fmtWan(cashWan) + "（剩餘 − 保障配置）／壽險保額 " + fmtWanBare(coverWan);
+        if (pfkMult != null) {
+          hintText += "（PFK 中分紅第10年 " + fmtMult(mult) + " 倍，躉繳";
+          if (!multFollowsPfk) hintText += "，倍數已手動調整";
+          hintText += "）";
+        } else {
+          hintText += "（此年紀不在 PFK 躉繳投保年齡 0–80 歲，倍數請自行填寫）";
+        }
+        hint.textContent = hintText;
       }
 
       const prop = fmtPropWan(propWan);
@@ -1180,7 +1241,7 @@
       if (insufficient) {
         biz("不過以目前的配息率，全數配置也無法打平房貸，可靈活運用的剩餘是" + left + "。我們先把月付與所需配置看清楚。");
       } else {
-        biz("對！但因為我們有老婆跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，放 " + prot + "在終身倍數壽險，例如 PFK，這邊會有 " + cover + "的壽險保障。意思是如果真的有狀況，" + cover + "隨時可以把房貸還清，老婆小孩能繼續生活。那" + left + "減掉 " + prot + "，還剩多少？");
+        biz("對！但因為我們有老婆跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，放 " + prot + "在終身倍數壽險，例如 PFK，中分紅，10 年後約有 " + cover + "的壽險保障。意思是如果真的有狀況，" + cover + "隨時可以把房貸還清，老婆小孩能繼續生活。那" + left + "減掉 " + prot + "，還剩多少？");
         cli("大概 " + fmtWanBare(cashWan) + "。");
         biz(cash + "如果放保守一點的標的，例如富蘭克林，配息算 " + cashRateS + "，一年大概有 " + cashYear + "，平均一個月大概有 " + cashMonth + "現金流！");
 
@@ -1496,10 +1557,18 @@
       protectFollowsDefault = false;
       updateScript();
     });
-    ["script-age", "script-mult", "script-cash-rate"].forEach(function (id) {
+    ["client-age", "client-gender", "script-cash-rate"].forEach(function (id) {
       const el = document.getElementById(id);
       el.addEventListener("input", updateScript);
       el.addEventListener("change", updateScript);
+    });
+    document.getElementById("script-mult").addEventListener("input", function () {
+      multFollowsPfk = false;
+      updateScript();
+    });
+    document.getElementById("script-mult").addEventListener("change", function () {
+      multFollowsPfk = false;
+      updateScript();
     });
     document.getElementById("copy-script").addEventListener("click", function () {
       if (!lastScriptText) return;
