@@ -299,6 +299,58 @@
       margin: 0;
     }
     .app-grid { display: grid; gap: 18px; }
+
+    .script-sub {
+      margin: -6px 0 14px;
+      font-size: 0.86rem;
+      color: var(--blue);
+      letter-spacing: 0.04em;
+    }
+    .script-body { display: flex; flex-direction: column; gap: 10px; }
+    .script-sec {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--blue-deep);
+      letter-spacing: 0.06em;
+      margin: 6px 0 0;
+    }
+    .script-line {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+    .script-line.biz {
+      background: var(--sky-100);
+      border-left: 3px solid var(--blue);
+    }
+    .script-line.cli {
+      background: #f3f6f8;
+      border-left: 3px solid #8aa4b5;
+    }
+    .script-line .who {
+      display: inline-block;
+      font-weight: 700;
+      margin-right: 6px;
+      letter-spacing: 0.06em;
+    }
+    .script-line.biz .who { color: var(--blue-deep); }
+    .script-line.cli .who { color: #4E6E85; }
+    .copy-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+    .btn-copy {
+      width: auto;
+      padding: 9px 18px;
+      font-size: 0.92rem;
+      letter-spacing: 0.1em;
+    }
+    .btn-copy.copied {
+      background: linear-gradient(180deg, #3aa06a 0%, #1e7a4a 100%);
+      box-shadow: 0 8px 18px rgba(30, 122, 74, 0.22);
+    }
   </style>
 </head>
 <body>
@@ -387,6 +439,17 @@
         <p id="empty" class="placeholder hidden">請輸入大於 0 的本金、0 以上的配息率與回存手續費，以及 1 到 65 歲的年紀。</p>
       </section>
 
+      <section class="card" id="script-card">
+        <h2 class="section-title">話術稿</h2>
+        <p class="script-sub">案例二：無房客戶與推展流程</p>
+        <p id="script-empty" class="placeholder hidden">請先完成上方試算，即可帶出話術稿。</p>
+        <div id="script-body" class="script-body"></div>
+        <div class="copy-row">
+          <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
+        </div>
+        <p class="note" id="script-note">配息率為試算假設數字，配息不保證且可能來自本金；推算已計入回存手續費，未計匯率、稅費與淨值波動。實際以商品公告為準。</p>
+      </section>
+
       <div class="foot">
         <button type="button" class="linkish" id="logout">登出</button>
       </div>
@@ -441,6 +504,7 @@
         results.classList.add("hidden");
         empty.classList.remove("hidden");
         tbody.innerHTML = "";
+        updateScript();
         return;
       }
 
@@ -476,6 +540,144 @@
         document.getElementById("sum65-principal").textContent = "本金" + fmtWan(at65.balWan);
         document.getElementById("sum65-monthly").textContent = fmtYuan(at65.monthly);
       }
+      updateScript();
+    }
+
+
+    var lastScriptText = "";
+
+    function fmtWanBare(v) {
+      const r = Math.round(v * 10) / 10;
+      const opts = Number.isInteger(r)
+        ? { maximumFractionDigits: 0 }
+        : { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+      return r.toLocaleString("zh-TW", opts) + " 萬";
+    }
+
+    function scriptLinesToHtml(parts) {
+      return parts.map(function (p) {
+        if (p.sec) return '<p class="script-sec">' + p.sec + "</p>";
+        const cls = p.who === "業務" ? "biz" : "cli";
+        return '<p class="script-line ' + cls + '"><span class="who">' + p.who + "</span>" + p.text + "</p>";
+      }).join("");
+    }
+
+    function scriptLinesToText(parts) {
+      return parts.map(function (p) {
+        if (p.sec) return p.sec;
+        return p.who + "：" + p.text;
+      }).join("\n\n");
+    }
+
+    function snapshotAt(principalWan, rate, netFactor, n) {
+      const balWan = principalWan * Math.pow(netFactor, n);
+      const yearly = balWan * 10000 * rate;
+      return { n: n, balWan: balWan, yearly: yearly, monthly: yearly / 12 };
+    }
+
+    function grossSum(principalWan, rate, netFactor, n0, years) {
+      var s = 0;
+      for (var k = 0; k < years; k++) {
+        s += snapshotAt(principalWan, rate, netFactor, n0 + k).yearly;
+      }
+      return s;
+    }
+
+    function updateScript() {
+      const body = document.getElementById("script-body");
+      const empty = document.getElementById("script-empty");
+      const copyBtn = document.getElementById("copy-script");
+      if (!body) return;
+
+      const principalWan = parseFloat(document.getElementById("principal").value);
+      const ratePct = parseFloat(document.getElementById("rate").value);
+      const startAge = parseInt(document.getElementById("age").value, 10);
+      const feePct = parseFloat(document.getElementById("fee").value);
+
+      const ok = isFinite(principalWan) && principalWan > 0
+        && isFinite(ratePct) && ratePct >= 0
+        && isFinite(startAge) && startAge >= 1 && startAge <= 65
+        && isFinite(feePct) && feePct >= 0;
+
+      if (!ok) {
+        body.innerHTML = "";
+        lastScriptText = "";
+        if (empty) empty.classList.remove("hidden");
+        if (copyBtn) copyBtn.disabled = true;
+        return;
+      }
+      if (empty) empty.classList.add("hidden");
+      if (copyBtn) copyBtn.disabled = false;
+
+      const rate = ratePct / 100;
+      const netFactor = 1 + rate * (1 - feePct / 100);
+      const yearsTo65 = 65 - startAge;
+      const rateS = String(parseFloat(Number(ratePct).toFixed(4))) + "%";
+      const prinS = fmtWanBare(principalWan);
+      const at65 = snapshotAt(principalWan, rate, netFactor, yearsTo65);
+
+      const parts = [];
+      function sec(s) { parts.push({ sec: s }); }
+      function biz(s) { parts.push({ who: "業務", text: s }); }
+      function cli(s) { parts.push({ who: "客戶", text: s }); }
+
+      const ages = rowAges(startAge);
+      const mid = [];
+      for (var i = 0; i < ages.length; i++) {
+        if (ages[i] >= 65) break;
+        const n = ages[i] - startAge;
+        const snap = snapshotAt(principalWan, rate, netFactor, n);
+        const span = Math.min(5, 65 - ages[i]);
+        snap.age = ages[i];
+        snap.span = span;
+        snap.fiveSum = grossSum(principalWan, rate, netFactor, n, span);
+        const nextN = n + span;
+        const nextBal = snapshotAt(principalWan, rate, netFactor, nextN).balWan;
+        snap.dPrin = nextBal - snap.balWan;
+        mid.push(snap);
+      }
+
+      sec(startAge + " 歲、" + prinS + "滾雪球");
+      biz("你知道我有個客戶 " + startAge + " 歲，聽完直接拿出 " + prinS + "來規劃退休現金流。你知道你贏在哪裡嗎？你贏在有年輕的時間！");
+
+      if (yearsTo65 > 0 && mid.length) {
+        const a0 = mid[0];
+        const span0 = a0.span;
+        const spanWord = span0 === 5 ? "5 年" : span0 + " 年";
+        biz("我們以 " + startAge + " 歲到 65 歲、每 5 年為一個級距來推算。如果放定存 1.5%，" + yearsTo65 + " 年下來利息沒多少，錢都被通膨吃掉。如果這 " + prinS + "放一個 " + rateS + " 配息的標的，一年配 " + fmtYuan(a0.yearly) + "，" + spanWord + "累積配息" + fmtWan(a0.fiveSum / 10000) + "。");
+
+        if (mid.length >= 2) {
+          var walk = "這" + fmtWan(mid[0].fiveSum / 10000) + "配息不花掉，在 " + mid[1].age + " 歲時實際投入本金來到" + fmtWan(mid[1].balWan) + "，一年又多了 " + fmtYuan(mid[1].yearly - mid[0].yearly) + "配息，每年變成領 " + fmtYuan(mid[1].yearly) + "。";
+          if (mid.length >= 3) {
+            const sp = mid[1].span === 5 ? "5 年" : mid[1].span + " 年";
+            walk += fmtYuan(mid[1].yearly) + "再累積 " + sp + "大概又有" + fmtWan(mid[1].fiveSum / 10000) + "，" + mid[2].age + " 歲時本金再滾入來到" + fmtWan(mid[2].balWan) + "，每年配息變成 " + fmtYuan(mid[2].yearly) + "，" + sp + "下來累積" + fmtWan(mid[2].fiveSum / 10000) + "。";
+          }
+          if (mid.length >= 4) {
+            const sp = mid[2].span === 5 ? "5 年" : mid[2].span + " 年";
+            walk += mid[3].age + " 歲時加碼進去，每年配息來到 " + fmtYuan(mid[3].yearly) + "，" + sp + "累積約 " + fmtWanBare(mid[3].fiveSum / 10000) + "。";
+          }
+          if (mid.length >= 5) {
+            const sp = mid[4].span === 5 ? "5 年" : mid[4].span + " 年";
+            walk += mid[4].age + " 歲時每年配息變成 " + fmtYuan(mid[4].yearly) + "，再過 " + sp + "本金累積又多了" + fmtWan(mid[4].dPrin) + "。";
+          }
+          biz(walk);
+        }
+      } else {
+        biz("我們先看 65 歲這一年的現金流。如果這 " + prinS + "放一個 " + rateS + " 配息的標的，一年配 " + fmtYuan(at65.yearly) + "。");
+      }
+
+      biz("巴菲特大部分的財富都是在晚年才累積出來的，這就是滾雪球的威力。");
+      cli("長長的坡道跟很濕的雪。");
+      biz("一路滾到 65 歲退休，每年的配息正式來到 " + fmtYuan(at65.yearly) + "，平均每個月有 " + fmtYuan(at65.monthly) + "的現金流！");
+
+      sec("階梯式推進：永不中斷的銷售邏輯");
+      cli("投資真的能保本嗎？");
+      biz("如果真要談保本就不用投資了。但你看，從 " + startAge + " 歲投 " + prinS + "，這包錢滾到最後，就算打對折都比你放定存好，重點是你花的是時間成本。");
+      cli("可是我沒有這 " + prinS + "。");
+      biz("沒關係，那就一年存 10 萬，我們談定期定額。");
+
+      body.innerHTML = scriptLinesToHtml(parts);
+      lastScriptText = scriptLinesToText(parts);
     }
 
     function showApp() {
@@ -523,6 +725,37 @@
       const el = document.getElementById(id);
       el.addEventListener("input", recalc);
       el.addEventListener("change", recalc);
+    });
+
+
+    document.getElementById("copy-script").addEventListener("click", function () {
+      if (!lastScriptText) return;
+      const btn = this;
+      function done() {
+        btn.textContent = "已複製";
+        btn.classList.add("copied");
+        setTimeout(function () {
+          btn.textContent = "複製話術";
+          btn.classList.remove("copied");
+        }, 1600);
+      }
+      function fallback() {
+        const ta = document.createElement("textarea");
+        ta.value = lastScriptText;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(lastScriptText).then(done).catch(function () { fallback(); done(); });
+      } else {
+        fallback();
+        done();
+      }
     });
 
     if (sessionStorage.getItem(AUTH_KEY) === "1") {
