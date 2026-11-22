@@ -3,72 +3,74 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#152A45">
-  <title>房貸每月還款試算</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23152A45'/%3E%3Cpath d='M12 30 L32 14 L52 30 V50 H38 V36 H26 V50 H12 Z' fill='%23C9A45C'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#D7EEF8">
+  <title>讓你的房產更有價值</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E7F4FC'/%3E%3Cpath d='M12 32 L32 16 L52 32 V52 H36 V38 H28 V52 H12 Z' fill='none' stroke='%231A73B0' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --navy: #152A45;
-      --navy-deep: #0C1B2E;
-      --navy-soft: #243754;
-      --gold: #C9A45C;
-      --gold-light: #E8D5A3;
-      --cream: #F6F1E8;
+      --sky-50: #F4FAFD;
+      --sky-100: #E8F4FB;
+      --sky-200: #D4EBF7;
+      --sky-300: #B7D8EE;
+      --blue: #1A73B0;
+      --blue-soft: #2B86C4;
+      --blue-deep: #0E4E7A;
+      --blue-dark: #0A3656;
       --card: #FFFFFF;
-      --text: #1C2838;
-      --muted: #5B6B7C;
-      --line: #E6E0D4;
+      --text: #14324A;
+      --muted: #4E6E85;
+      --line: #CDE3F0;
       --error: #B42318;
       --error-bg: #FDECEC;
-      --shadow: 0 12px 40px rgba(21, 42, 69, 0.12);
-      --radius: 16px;
+      --plus-bg: #E5F6EE;
+      --plus: #146C45;
+      --minus-bg: #FDECEC;
+      --minus: #9B2C2C;
+      --shadow: 0 10px 32px rgba(14, 78, 122, 0.08);
+      --radius: 18px;
     }
     * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-    }
+    html, body { margin: 0; padding: 0; min-height: 100%; }
     body {
       font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
       background:
-        radial-gradient(1200px 500px at 50% -80px, #243754 0%, var(--navy-deep) 55%),
-        var(--cream);
-      background-attachment: fixed;
+        radial-gradient(900px 420px at 80% -60px, rgba(167, 214, 240, 0.55) 0%, transparent 70%),
+        radial-gradient(700px 380px at 0% 80px, rgba(196, 226, 244, 0.7) 0%, transparent 65%),
+        linear-gradient(180deg, #E4F3FA 0%, #F4FAFD 30%, #EEF7FC 100%);
       color: var(--text);
       line-height: 1.6;
     }
     .wrap {
-      max-width: 560px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 28px 18px 48px;
+      padding: 28px 18px 56px;
     }
-    header.app-head {
+    .hero {
       text-align: center;
-      color: #fff;
-      margin-bottom: 22px;
+      margin: 0 0 26px;
+      position: relative;
     }
-    .gold-rule {
-      width: 56px;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      margin: 10px auto 0;
-      border-radius: 2px;
+    .hero-art {
+      width: min(220px, 70vw);
+      height: auto;
+      display: block;
+      margin: 0 auto 10px;
     }
-    h1 {
+    h1.hero-title {
       font-family: "Noto Serif TC", "Noto Sans TC", serif;
-      font-size: 1.55rem;
+      font-size: clamp(1.55rem, 5vw, 2.15rem);
       font-weight: 700;
       letter-spacing: 0.08em;
+      color: var(--blue-dark);
       margin: 0;
     }
-    .sub {
-      margin: 8px 0 0;
-      color: var(--gold-light);
-      font-size: 0.9rem;
+    .lede {
+      margin: 10px 0 0;
+      color: var(--blue);
+      font-size: clamp(0.92rem, 2.8vw, 1.05rem);
       letter-spacing: 0.06em;
     }
     .card {
@@ -76,13 +78,13 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 24px 22px 26px;
-      border: 1px solid rgba(201, 164, 92, 0.18);
+      border: 1px solid rgba(26, 115, 176, 0.12);
     }
     label {
       display: block;
       font-size: 0.86rem;
       font-weight: 500;
-      color: var(--navy);
+      color: var(--blue-deep);
       margin-bottom: 6px;
     }
     input[type="text"],
@@ -98,19 +100,20 @@
       font-size: 16px;
       font-family: inherit;
       color: var(--text);
-      background: #FCFBF8;
+      background: var(--sky-50);
       outline: none;
       transition: border-color .15s, box-shadow .15s;
     }
     select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23152A45' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230E4E7A' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 12px center;
+      background-color: var(--sky-50);
       padding-right: 36px;
     }
     input:focus, select:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.25);
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26, 115, 176, 0.18);
       background: #fff;
     }
     .field { margin-bottom: 16px; }
@@ -124,11 +127,11 @@
       letter-spacing: 0.12em;
       font-family: inherit;
       cursor: pointer;
-      background: linear-gradient(180deg, #1E3A5F 0%, var(--navy) 100%);
+      background: linear-gradient(180deg, #2B86C4 0%, var(--blue) 100%);
       color: #fff;
-      box-shadow: 0 8px 18px rgba(21, 42, 69, 0.22);
+      box-shadow: 0 8px 18px rgba(26, 115, 176, 0.22);
     }
-    .btn:hover { filter: brightness(1.08); }
+    .btn:hover { filter: brightness(1.06); }
     .btn:active { transform: translateY(1px); }
     .err {
       display: none;
@@ -141,9 +144,9 @@
     }
     .err.show { display: block; }
     .section-title {
-      font-size: 0.92rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      color: var(--navy);
+      color: var(--blue-deep);
       letter-spacing: 0.08em;
       margin: 0 0 14px;
       padding-bottom: 8px;
@@ -151,15 +154,15 @@
     }
     .result-card {
       margin-top: 18px;
-      background: linear-gradient(180deg, #16304C 0%, var(--navy-deep) 100%);
-      color: #fff;
+      background: linear-gradient(180deg, #E7F4FC 0%, #F7FBFE 100%);
+      color: var(--blue-dark);
       border-radius: 14px;
       padding: 22px 18px 18px;
       text-align: center;
-      border: 1px solid rgba(201, 164, 92, 0.35);
+      border: 1px solid var(--sky-300);
     }
     .result-label {
-      color: var(--gold-light);
+      color: var(--blue);
       font-size: 0.88rem;
       letter-spacing: 0.1em;
       margin: 0;
@@ -170,11 +173,11 @@
       font-weight: 700;
       letter-spacing: 0.02em;
       margin: 6px 0 2px;
-      color: #FFF8E7;
+      color: var(--blue-deep);
     }
     .result-hint {
       margin: 0;
-      color: rgba(255,255,255,0.65);
+      color: var(--muted);
       font-size: 0.82rem;
     }
     .metrics {
@@ -184,15 +187,16 @@
       margin-top: 14px;
     }
     .metric {
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.75);
       border-radius: 10px;
       padding: 10px 8px;
+      border: 1px solid rgba(26, 115, 176, 0.08);
     }
     .metric b {
       display: block;
       font-size: 0.78rem;
       font-weight: 500;
-      color: var(--gold-light);
+      color: var(--blue);
     }
     .metric span {
       display: block;
@@ -217,22 +221,22 @@
       font-weight: 500;
     }
     table.cmp thead th {
-      color: var(--navy);
+      color: var(--blue-deep);
       font-weight: 700;
       text-align: right;
-      border-bottom: 2px solid var(--gold);
+      border-bottom: 2px solid var(--blue);
     }
     table.cmp thead th:first-child { text-align: left; }
     table.cmp tbody tr:last-child td { border-bottom: 0; }
     table.cmp .pick {
-      background: rgba(201, 164, 92, 0.12);
+      background: rgba(26, 115, 176, 0.08);
       font-weight: 700;
     }
     .note {
       margin: 16px 0 0;
       padding: 10px 12px;
-      background: #F3EEE4;
-      border-left: 3px solid var(--gold);
+      background: var(--sky-100);
+      border-left: 3px solid var(--blue);
       border-radius: 0 8px 8px 0;
       color: var(--muted);
       font-size: 0.82rem;
@@ -240,7 +244,7 @@
     .foot {
       display: flex;
       justify-content: flex-end;
-      margin-top: 14px;
+      margin-top: 16px;
     }
     .linkish {
       background: none;
@@ -259,12 +263,6 @@
       padding: 18px 8px;
       margin: 0;
     }
-    .dividend-block {
-      margin-top: 28px;
-    }
-    .result-card.div-card {
-      background: linear-gradient(180deg, #1A3550 0%, #102233 100%);
-    }
     .gap-line {
       margin: 14px 0 0;
       padding: 11px 12px;
@@ -273,30 +271,22 @@
       font-size: 0.95rem;
       letter-spacing: 0.04em;
     }
-    .gap-line.plus {
-      background: rgba(201, 164, 92, 0.22);
-      color: #F3E2B3;
-    }
-    .gap-line.minus {
-      background: rgba(180, 80, 70, 0.28);
-      color: #F6D0C8;
-    }
-    .gap-line.even {
-      background: rgba(255,255,255,0.08);
-      color: #E8D5A3;
-    }
+    .gap-line.plus { background: var(--plus-bg); color: var(--plus); }
+    .gap-line.minus { background: var(--minus-bg); color: var(--minus); }
+    .gap-line.even { background: var(--sky-200); color: var(--blue-deep); }
     .breakeven {
       margin-top: 12px;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.8);
       border-radius: 10px;
       padding: 12px 10px 11px;
       text-align: center;
+      border: 1px solid rgba(26, 115, 176, 0.08);
     }
     .breakeven b {
       display: block;
       font-size: 0.78rem;
       font-weight: 500;
-      color: var(--gold-light);
+      color: var(--blue);
       letter-spacing: 0.06em;
     }
     .breakeven .pct {
@@ -305,33 +295,91 @@
       font-family: "Noto Serif TC", "Noto Sans TC", serif;
       font-size: 1.35rem;
       font-weight: 700;
-      color: #FFF8E7;
-    }
-    .breakeven .amt {
-      display: block;
-      margin-top: 2px;
-      font-size: 0.9rem;
-      color: rgba(255,255,255,0.86);
+      color: var(--blue-deep);
     }
     .breakeven.warn .pct,
     .breakeven.warn .amt {
       font-family: "Noto Sans TC", sans-serif;
       font-size: 0.95rem;
       font-weight: 700;
-      color: #F6D0C8;
+      color: var(--minus);
+    }
+    .breakeven .amt {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .app-grid { display: grid; gap: 18px; }
+    .split {
+      display: grid;
+      gap: 18px;
+      align-items: start;
+    }
+    .fund-wrap { overflow: auto; margin-top: 4px; -webkit-overflow-scrolling: touch; }
+    table.funds {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      min-width: 480px;
+    }
+    table.funds th, table.funds td {
+      padding: 9px 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+    table.funds thead th {
+      position: sticky;
+      top: 0;
+      background: var(--sky-200);
+      color: var(--blue-deep);
+      font-weight: 700;
+      text-align: left;
+      white-space: nowrap;
+      z-index: 1;
+    }
+    table.funds th.num, table.funds td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    table.funds td.code {
+      font-weight: 700;
+      color: var(--blue-deep);
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    table.funds tbody tr { cursor: pointer; }
+    table.funds tbody tr:hover { background: var(--sky-100); }
+    table.funds tbody tr.selected {
+      background: #D5EBF8;
+      box-shadow: inset 3px 0 0 var(--blue);
+    }
+    table.funds tbody tr:last-child td { border-bottom: 0; }
+    .fund-hint {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    #login-card { max-width: 440px; margin: 0 auto; }
+    @media (min-width: 900px) {
+      .split { grid-template-columns: minmax(300px, 0.95fr) minmax(360px, 1.15fr); }
     }
     @media (max-width: 380px) {
       .metrics { grid-template-columns: 1fr; }
-      h1 { font-size: 1.32rem; }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header class="app-head">
-      <h1>房貸每月還款試算</h1>
-      <div class="gold-rule"></div>
-      <p class="sub">本息平均攤還・配息試算</p>
+    <header class="hero">
+      <svg class="hero-art" viewBox="0 0 220 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M28 78 L78 36 L128 78 V108 H96 V86 H60 V108 H28 Z" stroke="#1A73B0" stroke-width="2" stroke-linejoin="round"/>
+        <rect x="70" y="62" width="16" height="16" rx="1.5" stroke="#1A73B0" stroke-width="1.7"/>
+        <path d="M20 108 H200" stroke="#B7D8EE" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M142 86 L158 68 L172 76 L196 46" stroke="#2B86C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="196" cy="46" r="3.2" fill="#1A73B0"/>
+        <path d="M78 36 L78 22" stroke="#1A73B0" stroke-width="1.7" stroke-linecap="round"/>
+        <circle cx="78" cy="18" r="3" fill="none" stroke="#1A73B0" stroke-width="1.6"/>
+      </svg>
+      <h1 class="hero-title">讓你的房產更有價值</h1>
+      <p class="lede">房貸月付 × 配息現金流，一頁算清楚</p>
     </header>
 
     <section id="login-card" class="card">
@@ -349,125 +397,181 @@
       </form>
     </section>
 
-    <section id="app-card" class="card hidden">
-      <h2 class="section-title">輸入條件</h2>
-      <div class="field">
-        <label for="amount">房貸金額（萬元）</label>
-        <input id="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
-      </div>
-      <div class="field">
-        <label for="rate">房貸年利率（%）</label>
-        <input id="rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 2.185" value="2.185">
-      </div>
-      <div class="field">
-        <label for="years">貸款年限</label>
-        <select id="years">
-          <option value="20">20 年</option>
-          <option value="30" selected>30 年</option>
-        </select>
-      </div>
-
-      <div id="results">
-        <div class="result-card">
-          <p class="result-label">本息平均攤還每月還款金額</p>
-          <p class="result-amount" id="monthly">—</p>
-          <p class="result-hint" id="periods"></p>
-          <div class="metrics">
-            <div class="metric">
-              <b>總還款金額</b>
-              <span id="total">—</span>
-            </div>
-            <div class="metric">
-              <b>總利息</b>
-              <span id="interest">—</span>
-            </div>
-          </div>
-        </div>
-
-        <h2 class="section-title" style="margin-top:22px">20 年與 30 年比較</h2>
-        <table class="cmp" id="cmp-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th data-y="20">20 年</th>
-              <th data-y="30">30 年</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>每月還款</td>
-              <td data-k="m20"></td>
-              <td data-k="m30"></td>
-            </tr>
-            <tr>
-              <td>總還款</td>
-              <td data-k="t20"></td>
-              <td data-k="t30"></td>
-            </tr>
-            <tr>
-              <td>總利息</td>
-              <td data-k="i20"></td>
-              <td data-k="i30"></td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="note">以固定利率、無寬限期試算，實際以銀行核貸為準。</p>
-      </div>
-      <p id="empty" class="placeholder hidden">請輸入大於 0 的房貸金額。</p>
-
-      <div class="dividend-block" id="dividend-section">
-        <h2 class="section-title">配息試算</h2>
+    <div id="app" class="app-grid hidden">
+      <section class="card" id="mortgage-card">
+        <h2 class="section-title">房貸試算</h2>
         <div class="field">
-          <label for="div-principal">配置配息本金（萬元）</label>
-          <input id="div-principal" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
+          <label for="amount">房貸金額（萬元）</label>
+          <input id="amount" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
         </div>
         <div class="field">
-          <label for="div-rate">配息年化報酬率（%）</label>
-          <input id="div-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 6" value="6">
+          <label for="rate">房貸年利率（%）</label>
+          <input id="rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 2.185" value="2.185">
         </div>
-        <div id="div-results">
-          <div class="result-card div-card">
-            <p class="result-label">每月配息</p>
-            <p class="result-amount" id="div-monthly">—</p>
+        <div class="field">
+          <label for="years">貸款年限</label>
+          <select id="years">
+            <option value="20">20 年</option>
+            <option value="30" selected>30 年</option>
+          </select>
+        </div>
+
+        <div id="results">
+          <div class="result-card">
+            <p class="result-label">本息平均攤還每月還款金額</p>
+            <p class="result-amount" id="monthly">—</p>
+            <p class="result-hint" id="periods"></p>
             <div class="metrics">
               <div class="metric">
-                <b>每年配息</b>
-                <span id="div-yearly">—</span>
+                <b>總還款金額</b>
+                <span id="total">—</span>
               </div>
               <div class="metric">
-                <b>對照房貸月付</b>
-                <span id="div-vs-pay">—</span>
+                <b>總利息</b>
+                <span id="interest">—</span>
               </div>
             </div>
-            <p id="div-gap" class="gap-line hidden"></p>
-            <div id="div-breakeven" class="breakeven hidden">
-              <b>打平房貸所需配置比例</b>
-              <span class="pct" id="div-breakeven-pct"></span>
-              <span class="amt" id="div-breakeven-amt"></span>
-            </div>
           </div>
-          <p class="note">配息率非保證，實際以商品公告為準。</p>
+
+          <h2 class="section-title" style="margin-top:22px">20 年與 30 年比較</h2>
+          <table class="cmp" id="cmp-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th data-y="20">20 年</th>
+                <th data-y="30">30 年</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>每月還款</td>
+                <td data-k="m20"></td>
+                <td data-k="m30"></td>
+              </tr>
+              <tr>
+                <td>總還款</td>
+                <td data-k="t20"></td>
+                <td data-k="t30"></td>
+              </tr>
+              <tr>
+                <td>總利息</td>
+                <td data-k="i20"></td>
+                <td data-k="i30"></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="note">以固定利率、無寬限期試算，實際以銀行核貸為準。</p>
         </div>
-        <p id="div-empty" class="placeholder hidden">請輸入大於 0 的配置配息本金與年化報酬率。</p>
+        <p id="empty" class="placeholder hidden">請輸入大於 0 的房貸金額。</p>
+      </section>
+
+      <div class="split">
+        <section class="card" id="dividend-section">
+          <h2 class="section-title">配息試算</h2>
+          <div class="field">
+            <label for="div-principal">配置配息本金（萬元）</label>
+            <input id="div-principal" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 1000" value="1000">
+          </div>
+          <div class="field">
+            <label for="div-rate">配息年化報酬率（%）</label>
+            <input id="div-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 6" value="6">
+          </div>
+          <div id="div-results">
+            <div class="result-card">
+              <p class="result-label">每月配息</p>
+              <p class="result-amount" id="div-monthly">—</p>
+              <div class="metrics">
+                <div class="metric">
+                  <b>每年配息</b>
+                  <span id="div-yearly">—</span>
+                </div>
+                <div class="metric">
+                  <b>對照房貸月付</b>
+                  <span id="div-vs-pay">—</span>
+                </div>
+              </div>
+              <p id="div-gap" class="gap-line hidden"></p>
+              <div id="div-breakeven" class="breakeven hidden">
+                <b>打平房貸所需配置比例</b>
+                <span class="pct" id="div-breakeven-pct"></span>
+                <span class="amt" id="div-breakeven-amt"></span>
+              </div>
+            </div>
+            <p class="note">配息率非保證，實際以商品公告為準。</p>
+          </div>
+          <p id="div-empty" class="placeholder hidden">請輸入大於 0 的配置配息本金與年化報酬率。</p>
+        </section>
+
+        <section class="card" id="fund-card">
+          <h2 class="section-title">配息標的參考</h2>
+          <p class="fund-hint">點選列可把該檔配息率帶入左側年化報酬率。</p>
+          <div class="fund-wrap">
+            <table class="funds" id="fund-table">
+              <thead>
+                <tr>
+                  <th>標的代號</th>
+                  <th>名稱</th>
+                  <th class="num">配息率</th>
+                  <th class="num">每百萬每月配息金額</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="note">資料來源：團隊官網配息基金頁（淨值日期 2026/11/18，資料更新 2026/11/20 09:24）。配息率非保證。</p>
+        </section>
       </div>
 
       <div class="foot">
         <button type="button" class="linkish" id="logout">登出</button>
       </div>
-    </section>
+    </div>
   </div>
 
   <script>
     const AUTH_KEY = "mc_auth";
     const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
+    const FUNDS = [
+      {code:"NGB2", name:"高盛新興市場債 X月配", rate:20.09},
+      {code:"NGB1", name:"高盛環球非投等債 X月配", rate:17.54},
+      {code:"ACE17", name:"聯博美國成長 AP總報酬月配", rate:14.88},
+      {code:"ACB22", name:"聯博全球非投等債 AA月配", rate:10.66},
+      {code:"DST3", name:"安聯AI收益成長 B月配(美元)", rate:10.46},
+      {code:"SCP6", name:"施羅德環球收益成長 A月配固定2", rate:10.45},
+      {code:"ACC3", name:"聯博多元資產收益 AI(美元)", rate:10.25},
+      {code:"JFP11", name:"摩根多重收益 A月配", rate:10.21},
+      {code:"PBT1", name:"柏瑞ESG量化多重資產 B(美元)", rate:10.10},
+      {code:"ACT1", name:"聯博美國多重資產收益 AI(美元)", rate:10.04},
+      {code:"FRB7", name:"富蘭克林新興國家固收 A(Mdis)", rate:9.76},
+      {code:"DSP5", name:"安聯收益成長 AM(美元)", rate:9.06},
+      {code:"ACC2", name:"聯博多元資產收益 AI(台幣)", rate:8.47},
+      {code:"ACB17", name:"聯博房貸收益 AA月配", rate:8.20},
+      {code:"SCP4", name:"施羅德環球多元收益 A月配固定", rate:7.22},
+      {code:"FRB5", name:"富蘭克林全球債券 A(Mdis)", rate:6.95}
+    ];
 
     const loginCard = document.getElementById("login-card");
-    const appCard = document.getElementById("app-card");
+    const app = document.getElementById("app");
     const loginForm = document.getElementById("login-form");
     const loginErr = document.getElementById("login-err");
 
     function fmt(v) {
       return Math.round(v).toLocaleString("zh-TW") + " 元";
+    }
+    function fmtPct(v) {
+      return (Math.round(v * 10) / 10).toLocaleString("zh-TW", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      }) + "%";
+    }
+    function fmtWan(v) {
+      return "約 " + (Math.round(v * 10) / 10).toLocaleString("zh-TW", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      }) + " 萬";
+    }
+    function perMillion(ratePct) {
+      return Math.round(1000000 * (ratePct / 100) / 12);
     }
 
     function monthlyPayment(principal, annualPct, years) {
@@ -523,20 +627,6 @@
       });
 
       recalcDividend(m, principal);
-    }
-
-    function fmtPct(v) {
-      return (Math.round(v * 10) / 10).toLocaleString("zh-TW", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1
-      }) + "%";
-    }
-
-    function fmtWan(v) {
-      return "約 " + (Math.round(v * 10) / 10).toLocaleString("zh-TW", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1
-      }) + " 萬";
     }
 
     function recalcDividend(monthlyMortgage, mortgagePrincipal) {
@@ -614,14 +704,42 @@
       }
     }
 
+    function rateLabel(rate) {
+      return rate.toFixed(2) + "%";
+    }
+
+    function renderFunds() {
+      const tbody = document.querySelector("#fund-table tbody");
+      tbody.innerHTML = FUNDS.map(function (f, i) {
+        return "<tr data-i='" + i + "' tabindex='0' role='button' aria-label='帶入 " + f.code + " 配息率 " + rateLabel(f.rate) + "'>" +
+          "<td class='code'>" + f.code + "</td>" +
+          "<td>" + f.name + "</td>" +
+          "<td class='num'>" + rateLabel(f.rate) + "</td>" +
+          "<td class='num'>" + perMillion(f.rate).toLocaleString("zh-TW") + " 元</td>" +
+          "</tr>";
+      }).join("");
+    }
+
+    function applyFund(i) {
+      const f = FUNDS[i];
+      if (!f) return;
+      const input = document.getElementById("div-rate");
+      input.value = f.rate.toFixed(2);
+      document.querySelectorAll("#fund-table tbody tr").forEach(function (tr) {
+        tr.classList.toggle("selected", tr.getAttribute("data-i") === String(i));
+      });
+      recalc();
+    }
+
     function showApp() {
       loginCard.classList.add("hidden");
-      appCard.classList.remove("hidden");
+      app.classList.remove("hidden");
+      renderFunds();
       recalc();
     }
 
     function showLogin() {
-      appCard.classList.add("hidden");
+      app.classList.add("hidden");
       loginCard.classList.remove("hidden");
       loginErr.classList.remove("show");
     }
@@ -659,6 +777,17 @@
       const el = document.getElementById(id);
       el.addEventListener("input", recalc);
       el.addEventListener("change", recalc);
+    });
+
+    document.querySelector("#fund-table tbody").addEventListener("click", function (e) {
+      const tr = e.target.closest("tr");
+      if (tr) applyFund(tr.getAttribute("data-i"));
+    });
+    document.querySelector("#fund-table tbody").addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        const tr = e.target.closest("tr");
+        if (tr) { e.preventDefault(); applyFund(tr.getAttribute("data-i")); }
+      }
     });
 
     if (sessionStorage.getItem(AUTH_KEY) === "1") {
