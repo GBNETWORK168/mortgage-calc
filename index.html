@@ -320,11 +320,11 @@
     table.funds {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.86rem;
-      min-width: 520px;
+      font-size: 0.78rem;
+      min-width: 560px;
     }
     table.funds th, table.funds td {
-      padding: 9px 8px;
+      padding: 7px 6px;
       border-bottom: 1px solid var(--line);
       vertical-align: middle;
     }
@@ -345,10 +345,57 @@
       white-space: nowrap;
       letter-spacing: 0.02em;
     }
-    table.funds td.risk {
+    table.funds td.risk,
+    table.funds td.suit {
       white-space: nowrap;
       color: var(--blue-deep);
       font-weight: 500;
+    }
+    .fund-legend {
+      margin: 0 0 10px;
+      padding: 8px 10px;
+      background: var(--sky-100);
+      border-radius: 8px;
+      color: var(--blue-deep);
+      font-size: 0.8rem;
+      letter-spacing: 0.02em;
+      line-height: 1.55;
+    }
+    .avail {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px 12px;
+      margin: 0 0 14px;
+      padding: 12px 14px;
+      background: var(--sky-100);
+      border: 1px solid var(--sky-300);
+      border-radius: 10px;
+    }
+    .avail b {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--blue);
+      letter-spacing: 0.06em;
+    }
+    .avail .amt {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--blue-deep);
+      font-variant-numeric: tabular-nums;
+    }
+    .avail.neg {
+      background: var(--minus-bg);
+      border-color: #F0C0C0;
+    }
+    .avail.neg .amt { color: var(--minus); }
+    .avail .warn {
+      flex-basis: 100%;
+      margin: 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--minus);
     }
     table.funds tbody tr { cursor: pointer; }
     table.funds tbody tr:hover { background: var(--sky-100); }
@@ -411,7 +458,7 @@
         </div>
         <div class="field">
           <label for="rate">房貸年利率（%）</label>
-          <input id="rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 2.185" value="2.185">
+          <input id="rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 2.7" value="2.7">
         </div>
         <div class="field">
           <label for="years">貸款年限</label>
@@ -459,7 +506,12 @@
           </div>
           <div class="field">
             <label for="div-rate">配息年化報酬率（%）</label>
-            <input id="div-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 6" value="6">
+            <input id="div-rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 8" value="8">
+          </div>
+          <div id="available-funds" class="avail">
+            <b>可運用資金</b>
+            <span class="amt" id="avail-amt">—</span>
+            <p class="warn hidden" id="avail-note">超出貸款金額</p>
           </div>
           <div id="div-results">
             <div class="result-card">
@@ -490,6 +542,7 @@
         <section class="card" id="fund-card">
           <h2 class="section-title">配息標的參考</h2>
           <p class="fund-hint">點選列可把該檔配息率帶入左側年化報酬率。</p>
+          <p class="fund-legend">保守型：RR1～RR2／穩健型：RR1～RR3／積極型：RR1～RR5</p>
           <div class="fund-wrap">
             <table class="funds" id="fund-table">
               <thead>
@@ -497,6 +550,7 @@
                   <th>標的代號</th>
                   <th>名稱</th>
                   <th>風險等級</th>
+                  <th>適合屬性</th>
                   <th class="num">配息率</th>
                   <th class="num">每月配息/百萬</th>
                 </tr>
@@ -569,6 +623,7 @@
     }
 
     function recalc() {
+      recalcAvailable();
       const principal = parseFloat(document.getElementById("amount").value) * 10000;
       const annualPct = parseFloat(document.getElementById("rate").value);
       const years = parseInt(document.getElementById("years").value, 10);
@@ -692,6 +747,36 @@
       return rate.toFixed(2) + "%";
     }
 
+    function suitLabel(risk) {
+      if (risk === "RR1" || risk === "RR2") return "保守型以上";
+      if (risk === "RR3") return "穩健型以上";
+      if (risk === "RR4" || risk === "RR5") return "積極型";
+      return "—";
+    }
+
+    function recalcAvailable() {
+      const loan = parseFloat(document.getElementById("amount").value) * 10000;
+      const allocated = parseFloat(document.getElementById("div-principal").value) * 10000;
+      const box = document.getElementById("available-funds");
+      const amt = document.getElementById("avail-amt");
+      const note = document.getElementById("avail-note");
+      if (!isFinite(loan) || !isFinite(allocated)) {
+        box.classList.remove("neg");
+        amt.textContent = "—";
+        note.classList.add("hidden");
+        return;
+      }
+      const avail = loan - allocated;
+      amt.textContent = fmt(avail);
+      if (avail < 0) {
+        box.classList.add("neg");
+        note.classList.remove("hidden");
+      } else {
+        box.classList.remove("neg");
+        note.classList.add("hidden");
+      }
+    }
+
     function renderFunds() {
       const tbody = document.querySelector("#fund-table tbody");
       tbody.innerHTML = FUNDS.map(function (f, i) {
@@ -699,6 +784,7 @@
           "<td class='code'>" + f.code + "</td>" +
           "<td>" + f.name + "</td>" +
           "<td class='risk'>" + (f.risk || "—") + "</td>" +
+          "<td class='suit'>" + suitLabel(f.risk) + "</td>" +
           "<td class='num'>" + rateLabel(f.rate) + "</td>" +
           "<td class='num'>" + perMillion(f.rate).toLocaleString("zh-TW") + " 元</td>" +
           "</tr>";
