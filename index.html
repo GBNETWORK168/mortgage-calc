@@ -321,7 +321,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.86rem;
-      min-width: 480px;
+      min-width: 520px;
     }
     table.funds th, table.funds td {
       padding: 9px 8px;
@@ -344,6 +344,11 @@
       color: var(--blue-deep);
       white-space: nowrap;
       letter-spacing: 0.02em;
+    }
+    table.funds td.risk {
+      white-space: nowrap;
+      color: var(--blue-deep);
+      font-weight: 500;
     }
     table.funds tbody tr { cursor: pointer; }
     table.funds tbody tr:hover { background: var(--sky-100); }
@@ -491,8 +496,9 @@
                 <tr>
                   <th>標的代號</th>
                   <th>名稱</th>
+                  <th>風險等級</th>
                   <th class="num">配息率</th>
-                  <th class="num">每百萬每月配息金額</th>
+                  <th class="num">每月配息/百萬</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -512,22 +518,22 @@
     const AUTH_KEY = "mc_auth";
     const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
     const FUNDS = [
-      {code:"NGB2", name:"高盛新興市場債 X月配", rate:20.09},
-      {code:"NGB1", name:"高盛環球非投等債 X月配", rate:17.54},
-      {code:"ACE17", name:"聯博美國成長 AP總報酬月配", rate:14.88},
-      {code:"ACB22", name:"聯博全球非投等債 AA月配", rate:10.66},
-      {code:"DST3", name:"安聯AI收益成長 B月配(美元)", rate:10.46},
-      {code:"SCP6", name:"施羅德環球收益成長 A月配固定2", rate:10.45},
-      {code:"ACC3", name:"聯博多元資產收益 AI(美元)", rate:10.25},
-      {code:"JFP11", name:"摩根多重收益 A月配", rate:10.21},
-      {code:"PBT1", name:"柏瑞ESG量化多重資產 B(美元)", rate:10.10},
-      {code:"ACT1", name:"聯博美國多重資產收益 AI(美元)", rate:10.04},
-      {code:"FRB7", name:"富蘭克林新興國家固收 A(Mdis)", rate:9.76},
-      {code:"DSP5", name:"安聯收益成長 AM(美元)", rate:9.06},
-      {code:"ACC2", name:"聯博多元資產收益 AI(台幣)", rate:8.47},
-      {code:"ACB17", name:"聯博房貸收益 AA月配", rate:8.20},
-      {code:"SCP4", name:"施羅德環球多元收益 A月配固定", rate:7.22},
-      {code:"FRB5", name:"富蘭克林全球債券 A(Mdis)", rate:6.95}
+      {code:"NGB2", name:"高盛新興市場債 X月配", rate:20.09, risk:"RR3"},
+      {code:"NGB1", name:"高盛環球非投等債 X月配", rate:17.54, risk:"RR3"},
+      {code:"ACE17", name:"聯博美國成長 AP總報酬月配", rate:14.88, risk:"RR4"},
+      {code:"ACB22", name:"聯博全球非投等債 AA月配", rate:10.66, risk:"RR3"},
+      {code:"DST3", name:"安聯AI收益成長 B月配(美元)", rate:10.46, risk:"RR3"},
+      {code:"SCP6", name:"施羅德環球收益成長 A月配固定2", rate:10.45, risk:"RR3"},
+      {code:"ACC3", name:"聯博多元資產收益 AI(美元)", rate:10.25, risk:"RR3"},
+      {code:"JFP11", name:"摩根多重收益 A月配", rate:10.21, risk:"RR3"},
+      {code:"PBT1", name:"柏瑞ESG量化多重資產 B(美元)", rate:10.10, risk:"RR3"},
+      {code:"ACT1", name:"聯博美國多重資產收益 AI(美元)", rate:10.04, risk:"RR3"},
+      {code:"FRB7", name:"富蘭克林新興國家固收 A(Mdis)", rate:9.76, risk:"RR3"},
+      {code:"DSP5", name:"安聯收益成長 AM(美元)", rate:9.06, risk:"RR3"},
+      {code:"ACC2", name:"聯博多元資產收益 AI(台幣)", rate:8.47, risk:"RR3"},
+      {code:"ACB17", name:"聯博房貸收益 AA月配", rate:8.20, risk:"RR3"},
+      {code:"SCP4", name:"施羅德環球多元收益 A月配固定", rate:7.22, risk:"RR3"},
+      {code:"FRB5", name:"富蘭克林全球債券 A(Mdis)", rate:6.95, risk:"RR2"}
     ];
 
     const loginCard = document.getElementById("login-card");
@@ -692,6 +698,7 @@
         return "<tr data-i='" + i + "' tabindex='0' role='button' aria-label='帶入 " + f.code + " 配息率 " + rateLabel(f.rate) + "'>" +
           "<td class='code'>" + f.code + "</td>" +
           "<td>" + f.name + "</td>" +
+          "<td class='risk'>" + (f.risk || "—") + "</td>" +
           "<td class='num'>" + rateLabel(f.rate) + "</td>" +
           "<td class='num'>" + perMillion(f.rate).toLocaleString("zh-TW") + " 元</td>" +
           "</tr>";
