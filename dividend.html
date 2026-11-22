@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#D7EEF8">
+  <title>小資也能輕鬆退休</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E7F4FC'/%3E%3Cpath d='M12 44 L24 32 L34 38 L52 16' fill='none' stroke='%231A73B0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='52' cy='16' r='3.2' fill='%231A73B0'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sky-50: #F4FAFD;
+      --sky-100: #E8F4FB;
+      --sky-200: #D4EBF7;
+      --sky-300: #B7D8EE;
+      --blue: #1A73B0;
+      --blue-soft: #2B86C4;
+      --blue-deep: #0E4E7A;
+      --blue-dark: #0A3656;
+      --card: #FFFFFF;
+      --text: #14324A;
+      --muted: #4E6E85;
+      --line: #CDE3F0;
+      --error: #B42318;
+      --error-bg: #FDECEC;
+      --shadow: 0 10px 32px rgba(14, 78, 122, 0.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; min-height: 100%; }
+    body {
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background:
+        radial-gradient(900px 420px at 80% -60px, rgba(167, 214, 240, 0.55) 0%, transparent 70%),
+        radial-gradient(700px 380px at 0% 80px, rgba(196, 226, 244, 0.7) 0%, transparent 65%),
+        linear-gradient(180deg, #E4F3FA 0%, #F4FAFD 30%, #EEF7FC 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 18px 56px;
+    }
+    .hero {
+      text-align: center;
+      margin: 0 0 26px;
+      position: relative;
+    }
+    .hero-art {
+      width: min(220px, 70vw);
+      height: auto;
+      display: block;
+      margin: 0 auto 10px;
+    }
+    h1.hero-title {
+      font-family: "Noto Serif TC", "Noto Sans TC", serif;
+      font-size: clamp(1.55rem, 5vw, 2.15rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--blue-dark);
+      margin: 0;
+    }
+    .lede {
+      margin: 10px 0 0;
+      color: var(--blue);
+      font-size: clamp(0.92rem, 2.8vw, 1.05rem);
+      letter-spacing: 0.06em;
+    }
+    .site-nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 0;
+    }
+    .site-nav a {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      color: var(--blue-deep);
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--sky-300);
+    }
+    .site-nav a:hover { background: #fff; border-color: var(--blue); }
+    .site-nav a[aria-current="page"] {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+      font-weight: 700;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px 22px 26px;
+      border: 1px solid rgba(26, 115, 176, 0.12);
+    }
+    label {
+      display: block;
+      font-size: 0.86rem;
+      font-weight: 500;
+      color: var(--blue-deep);
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 16px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--sky-50);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26, 115, 176, 0.18);
+      background: #fff;
+    }
+    .field { margin-bottom: 16px; }
+    .inputs {
+      display: grid;
+      gap: 4px 16px;
+    }
+    @media (min-width: 700px) {
+      .inputs { grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .btn {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 1.02rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      font-family: inherit;
+      cursor: pointer;
+      background: linear-gradient(180deg, #2B86C4 0%, var(--blue) 100%);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(26, 115, 176, 0.22);
+    }
+    .btn:hover { filter: brightness(1.06); }
+    .btn:active { transform: translateY(1px); }
+    .err {
+      display: none;
+      margin: 0 0 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--error-bg);
+      color: var(--error);
+      font-size: 0.9rem;
+    }
+    .err.show { display: block; }
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--blue-deep);
+      letter-spacing: 0.08em;
+      margin: 0 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .table-wrap { overflow: auto; margin-top: 4px; -webkit-overflow-scrolling: touch; }
+    table.years {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 520px;
+    }
+    table.years th, table.years td {
+      padding: 10px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    table.years th:first-child, table.years td:first-child {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    table.years thead th {
+      color: var(--blue-deep);
+      font-weight: 700;
+      text-align: right;
+      border-bottom: 2px solid var(--blue);
+    }
+    table.years thead th:first-child { text-align: left; }
+    table.years tbody tr:last-child td { border-bottom: 0; }
+    table.years tr.age65 td {
+      background: #fff4e6;
+      font-weight: 700;
+      color: #9c3d0e;
+    }
+    table.years tr.age65 td:first-child { color: #9c3d0e; }
+    .breakeven {
+      margin-top: 18px;
+      background: #fff4e6;
+      border-radius: 14px;
+      padding: 16px 14px 18px;
+      text-align: center;
+      border: 2px solid #e8590c;
+      box-shadow: 0 8px 20px rgba(232, 89, 12, 0.14);
+    }
+    .breakeven b {
+      display: block;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #9c3d0e;
+      letter-spacing: 0.08em;
+    }
+    .breakeven .pct {
+      display: block;
+      margin: 4px 0 0;
+      font-family: "Noto Serif TC", "Noto Sans TC", serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: #e8590c;
+    }
+    @media (min-width: 768px) {
+      .breakeven .pct { font-size: 3.4rem; }
+    }
+    .breakeven .amt {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #5c3a1e;
+    }
+    .breakeven .amt .amt-val { color: #e8590c; }
+    .note {
+      margin: 16px 0 0;
+      padding: 10px 12px;
+      background: var(--sky-100);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .foot {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    .linkish {
+      background: none;
+      border: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px;
+    }
+    .hidden { display: none !important; }
+    .placeholder {
+      color: var(--muted);
+      text-align: center;
+      padding: 18px 8px;
+      margin: 0;
+    }
+    .app-grid { display: grid; gap: 18px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <svg class="hero-art" viewBox="0 0 220 112" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M20 88 H200" stroke="#B7D8EE" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M20 88 V24" stroke="#B7D8EE" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M32 76 L68 62 L98 66 L142 40 L196 22" stroke="#2B86C4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="196" cy="22" r="3.4" fill="#1A73B0"/>
+        <circle cx="32" cy="76" r="2.6" fill="#1A73B0"/>
+        <circle cx="68" cy="62" r="2.4" fill="#1A73B0"/>
+        <circle cx="98" cy="66" r="2.4" fill="#1A73B0"/>
+        <circle cx="142" cy="40" r="2.6" fill="#1A73B0"/>
+      </svg>
+      <h1 class="hero-title">小資也能輕鬆退休</h1>
+      <p class="lede">每年利息回存，一頁看到 65 歲</p>
+      <nav class="site-nav" aria-label="試算頁面">
+        <a href="index.html">讓你的房產更有價值</a>
+        <a href="dividend.html" aria-current="page">小資也能輕鬆退休</a>
+      </nav>
+    </header>
+
+    <section id="login-card" class="card">
+      <form id="login-form" autocomplete="on">
+        <p id="login-err" class="err" role="alert">帳號或密碼錯誤</p>
+        <div class="field">
+          <label for="account">帳號</label>
+          <input id="account" name="username" type="text" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">密碼</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn" type="submit">登入</button>
+      </form>
+    </section>
+
+    <div id="app" class="app-grid hidden">
+      <section class="card" id="calc-card">
+        <h2 class="section-title">退休配息試算</h2>
+        <div class="inputs">
+          <div class="field">
+            <label for="principal">本金（萬元）</label>
+            <input id="principal" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 50" value="50">
+          </div>
+          <div class="field">
+            <label for="rate">每年配息率（%）</label>
+            <input id="rate" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 8" value="8">
+          </div>
+          <div class="field">
+            <label for="age">年紀（歲）</label>
+            <input id="age" type="number" inputmode="numeric" min="1" max="65" step="1" placeholder="例如 30" value="30">
+          </div>
+        </div>
+
+        <div id="results">
+          <div class="breakeven" id="sum65">
+            <b>65歲時</b>
+            <span class="pct" id="sum65-principal">本金約 — 萬</span>
+            <span class="amt">每月配息約 <span class="amt-val" id="sum65-monthly">— 元</span></span>
+          </div>
+
+          <h2 class="section-title" style="margin-top:22px">每 5 年配息一覽</h2>
+          <div class="table-wrap">
+            <table class="years" id="year-table">
+              <thead>
+                <tr>
+                  <th>年紀</th>
+                  <th>累積年數</th>
+                  <th>本金（含回存）</th>
+                  <th>每年配息</th>
+                  <th>每月配息</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="note">配息率非保證，未計匯率與淨值變動，僅供試算參考。</p>
+        </div>
+        <p id="empty" class="placeholder hidden">請輸入大於 0 的本金，以及 1 到 65 歲的年紀。</p>
+      </section>
+
+      <div class="foot">
+        <button type="button" class="linkish" id="logout">登出</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const AUTH_KEY = "mc_auth";
+    const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
+    const loginCard = document.getElementById("login-card");
+    const app = document.getElementById("app");
+    const loginForm = document.getElementById("login-form");
+    const loginErr = document.getElementById("login-err");
+
+    function fmtYuan(v) {
+      return Math.round(v).toLocaleString("zh-TW") + " 元";
+    }
+
+    function fmtWan(v) {
+      return "約 " + v.toLocaleString("zh-TW", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      }) + " 萬";
+    }
+
+    function rowAges(start) {
+      const ages = [];
+      for (var a = start; a < 65; a += 5) ages.push(a);
+      ages.push(65);
+      return ages;
+    }
+
+    function recalc() {
+      const principalWan = parseFloat(document.getElementById("principal").value);
+      const ratePct = parseFloat(document.getElementById("rate").value);
+      const startAge = parseInt(document.getElementById("age").value, 10);
+      const results = document.getElementById("results");
+      const empty = document.getElementById("empty");
+      const tbody = document.querySelector("#year-table tbody");
+
+      const okPrincipal = isFinite(principalWan) && principalWan > 0;
+      const okRate = isFinite(ratePct) && ratePct >= 0;
+      const okAge = isFinite(startAge) && startAge >= 1 && startAge <= 65;
+
+      if (!okPrincipal || !okRate || !okAge) {
+        results.classList.add("hidden");
+        empty.classList.remove("hidden");
+        tbody.innerHTML = "";
+        return;
+      }
+
+      empty.classList.add("hidden");
+      results.classList.remove("hidden");
+
+      const rate = ratePct / 100;
+      const rows = rowAges(startAge);
+      var html = "";
+      var at65 = null;
+
+      rows.forEach(function (age) {
+        const n = age - startAge;
+        const balWan = principalWan * Math.pow(1 + rate, n);
+        const yearly = balWan * 10000 * rate;
+        const monthly = yearly / 12;
+        const is65 = age === 65;
+        if (is65) at65 = { balWan: balWan, monthly: monthly };
+        html += "<tr" + (is65 ? ' class="age65"' : "") + ">" +
+          "<td>" + age + " 歲</td>" +
+          "<td>" + n + " 年</td>" +
+          "<td>" + fmtWan(balWan) + "</td>" +
+          "<td>" + fmtYuan(yearly) + "</td>" +
+          "<td>" + fmtYuan(monthly) + "</td>" +
+          "</tr>";
+      });
+
+      tbody.innerHTML = html;
+      if (at65) {
+        document.getElementById("sum65-principal").textContent = "本金" + fmtWan(at65.balWan);
+        document.getElementById("sum65-monthly").textContent = fmtYuan(at65.monthly);
+      }
+    }
+
+    function showApp() {
+      loginCard.classList.add("hidden");
+      app.classList.remove("hidden");
+      recalc();
+    }
+
+    function showLogin() {
+      app.classList.add("hidden");
+      loginCard.classList.remove("hidden");
+      loginErr.classList.remove("show");
+    }
+
+    async function sha256hex(text) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(buf)).map(function (b) {
+        return b.toString(16).padStart(2, "0");
+      }).join("");
+    }
+
+    loginForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      loginErr.classList.remove("show");
+      const user = document.getElementById("account").value.trim();
+      const pass = document.getElementById("password").value;
+      const hash = await sha256hex(user + ":" + pass);
+      if (hash === CRED_HASH) {
+        sessionStorage.setItem(AUTH_KEY, "1");
+        document.getElementById("password").value = "";
+        showApp();
+      } else {
+        loginErr.classList.add("show");
+      }
+    });
+
+    document.getElementById("logout").addEventListener("click", function () {
+      sessionStorage.removeItem(AUTH_KEY);
+      document.getElementById("account").value = "";
+      document.getElementById("password").value = "";
+      showLogin();
+    });
+
+    ["principal", "rate", "age"].forEach(function (id) {
+      const el = document.getElementById(id);
+      el.addEventListener("input", recalc);
+      el.addEventListener("change", recalc);
+    });
+
+    if (sessionStorage.getItem(AUTH_KEY) === "1") {
+      showApp();
+    }
+  </script>
+</body>
+</html>

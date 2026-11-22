@@ -561,6 +561,32 @@
     @media (min-width: 900px) {
       .split { grid-template-columns: minmax(280px, 0.8fr) minmax(480px, 1.3fr); }
     }
+
+    .site-nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 0;
+    }
+    .site-nav a {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      color: var(--blue-deep);
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--sky-300);
+    }
+    .site-nav a:hover { background: #fff; border-color: var(--blue); }
+    .site-nav a[aria-current="page"] {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+      font-weight: 700;
+    }
     @media (max-width: 380px) {
       .metrics { grid-template-columns: 1fr; }
     }
@@ -580,6 +606,10 @@
       </svg>
       <h1 class="hero-title">讓你的房產更有價值</h1>
       <p class="lede">房貸月付 × 配息現金流，一頁算清楚</p>
+      <nav class="site-nav" aria-label="試算頁面">
+        <a href="index.html" aria-current="page">讓你的房產更有價值</a>
+        <a href="dividend.html">小資也能輕鬆退休</a>
+      </nav>
     </header>
 
     <section id="login-card" class="card">
