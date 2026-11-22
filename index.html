@@ -320,11 +320,11 @@
     table.funds {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.78rem;
-      min-width: 560px;
+      font-size: 0.76rem;
+      min-width: 0;
     }
     table.funds th, table.funds td {
-      padding: 7px 6px;
+      padding: 6px 5px;
       border-bottom: 1px solid var(--line);
       vertical-align: middle;
     }
@@ -337,6 +337,10 @@
       text-align: left;
       white-space: nowrap;
       z-index: 1;
+    }
+    table.funds thead th.num {
+      white-space: normal;
+      line-height: 1.25;
     }
     table.funds th.num, table.funds td.num { text-align: right; font-variant-numeric: tabular-nums; }
     table.funds td.code {
@@ -411,7 +415,7 @@
     }
     #login-card { max-width: 440px; margin: 0 auto; }
     @media (min-width: 900px) {
-      .split { grid-template-columns: minmax(300px, 0.95fr) minmax(360px, 1.15fr); }
+      .split { grid-template-columns: minmax(280px, 0.8fr) minmax(480px, 1.3fr); }
     }
     @media (max-width: 380px) {
       .metrics { grid-template-columns: 1fr; }
