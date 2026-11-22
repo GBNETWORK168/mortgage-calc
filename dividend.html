@@ -213,6 +213,16 @@
       color: #9c3d0e;
     }
     table.years tr.age65 td:first-child { color: #9c3d0e; }
+    @media (max-width: 600px) {
+      table.years {
+        min-width: 0;
+        font-size: 0.72rem;
+      }
+      table.years th, table.years td {
+        padding: 8px 3px;
+        white-space: normal;
+      }
+    }
     .breakeven {
       margin-top: 18px;
       background: #fff4e6;
