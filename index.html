@@ -421,16 +421,6 @@
             <p class="result-label">本息平均攤還每月還款金額</p>
             <p class="result-amount" id="monthly">—</p>
             <p class="result-hint" id="periods"></p>
-            <div class="metrics">
-              <div class="metric">
-                <b>總還款金額</b>
-                <span id="total">—</span>
-              </div>
-              <div class="metric">
-                <b>總利息</b>
-                <span id="interest">—</span>
-              </div>
-            </div>
           </div>
 
           <h2 class="section-title" style="margin-top:22px">20 年與 30 年比較</h2>
@@ -447,16 +437,6 @@
                 <td>每月還款</td>
                 <td data-k="m20"></td>
                 <td data-k="m30"></td>
-              </tr>
-              <tr>
-                <td>總還款</td>
-                <td data-k="t20"></td>
-                <td data-k="t30"></td>
-              </tr>
-              <tr>
-                <td>總利息</td>
-                <td data-k="i20"></td>
-                <td data-k="i30"></td>
               </tr>
             </tbody>
           </table>
@@ -603,14 +583,12 @@
       const n = years * 12;
       document.getElementById("monthly").textContent = fmt(m);
       document.getElementById("periods").textContent = "共 " + n + " 期";
-      document.getElementById("total").textContent = fmt(m * n);
-      document.getElementById("interest").textContent = fmt(m * n - principal);
 
       const m20 = monthlyPayment(principal, annualPct, 20);
       const m30 = monthlyPayment(principal, annualPct, 30);
       const map = {
-        m20: fmt(m20), t20: fmt(m20 * 240), i20: fmt(m20 * 240 - principal),
-        m30: fmt(m30), t30: fmt(m30 * 360), i30: fmt(m30 * 360 - principal)
+        m20: fmt(m20),
+        m30: fmt(m30)
       };
       document.querySelectorAll("#cmp-table [data-k]").forEach(function (td) {
         td.textContent = map[td.getAttribute("data-k")];
