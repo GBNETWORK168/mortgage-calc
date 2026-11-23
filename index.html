@@ -2,6 +2,9 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
+<script src="auth.js"></script>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<noscript><style>body>*{display:none!important}</style></noscript>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#D7EEF8">
   <title>讓你的房產更有價值</title>
@@ -992,7 +995,7 @@
       </section>
 
       <div class="foot">
-        <button type="button" class="linkish" id="logout">登出</button>
+        <button type="button" class="linkish" id="logout" data-site-logout>登出</button>
       </div>
     </div>
   </div>
@@ -1751,6 +1754,7 @@
 
     document.getElementById("logout").addEventListener("click", function () {
       sessionStorage.removeItem(AUTH_KEY);
+      if (window.SiteAuth) { SiteAuth.logout(); return; }
       document.getElementById("account").value = "";
       document.getElementById("password").value = "";
       showLogin();
@@ -1854,7 +1858,8 @@
       }
     });
 
-    if (sessionStorage.getItem(AUTH_KEY) === "1") {
+    /* 登入由共用登入關卡 auth.js 負責；通過關卡就直接顯示（舊的頁內登入框保留作後備） */
+    if ((window.SiteAuth && SiteAuth.isAuthed()) || sessionStorage.getItem(AUTH_KEY) === "1") {
       showApp();
     }
     loadMarketData();
