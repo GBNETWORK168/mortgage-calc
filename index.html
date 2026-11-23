@@ -888,7 +888,7 @@
               <td id="sum-flex">—</td>
             </tr>
             <tr>
-              <th>PFK 投入（目標保障 ÷ 第10年倍數）</th>
+              <th>PFK 兩年總繳（目標保障 ÷ 第 6 年倍數）</th>
               <td id="sum-pfk">—</td>
             </tr>
             <tr>
@@ -929,12 +929,12 @@
             <input id="script-target" type="number" inputmode="decimal" min="0" step="any" value="1000">
           </div>
           <div class="field">
-            <label id="script-protect-label">PFK 投入金額（自動反算）</label>
-            <p class="readonly-val" id="script-protect" aria-labelledby="script-protect-label">137 萬</p>
+            <label id="script-protect-label">PFK 兩年總繳保費（自動反算）</label>
+            <p class="readonly-val" id="script-protect" aria-labelledby="script-protect-label">140.1 萬</p>
           </div>
           <div class="field">
-            <label id="script-mult-label" for="script-mult">壽險保額倍數</label>
-            <p class="readonly-val" id="script-mult" aria-labelledby="script-mult-label">7.30</p>
+            <label id="script-mult-label" for="script-mult">第 6 年壽險倍數</label>
+            <p class="readonly-val" id="script-mult" aria-labelledby="script-mult-label">7.14</p>
           </div>
         </div>
         <p class="script-computed" id="script-computed"></p>
@@ -943,7 +943,7 @@
         <div class="copy-row">
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
         </div>
-        <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。PFK 投入金額＝目標壽險保障 ÷ 第 10 年壽險倍數。倍數來源：PFK 快速報價，躉繳、中分紅、第 10 保單年度；紅利非保證。</p>
+        <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。PFK 兩年總繳保費＝目標壽險保障 ÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。倍數來源：PFK 快速報價，兩年期、中分紅、第 6 保單年度；紅利非保證。</p>
       </section>
 
       <div class="foot">
@@ -969,19 +969,20 @@
       {code:"FRB5", name:"富蘭克林全球債券 A(Mdis)", rate:6.95, risk:"RR2"}
     ];
 
-    const PFK_Y10 = {
-      term: 1,
-      termName: "躉繳",
+    const PFK_Y6 = {
+      term: 2,
+      termName: "兩年期",
       sc: 2,
       scLabel: "中分紅",
+      year: 6,
       minAge: 0,
-      maxAge: 80,
-      "女": [21.98,21.17,20.43,19.67,18.96,18.28,17.62,16.98,16.36,15.77,15.22,14.67,14.15,13.64,13.14,12.67,12.21,11.77,11.34,10.93,10.53,10.15,9.79,9.44,9.10,8.77,8.45,8.15,7.86,7.58,7.30,7.05,6.80,6.55,6.32,6.09,5.88,5.67,5.47,5.27,5.08,4.90,4.71,4.54,4.37,4.21,4.06,3.91,3.76,3.62,3.49,3.36,3.23,3.12,3.00,2.89,2.78,2.68,2.58,2.49,2.40,2.31,2.23,2.15,2.07,2.00,1.93,1.86,1.79,1.73,1.67,1.58,1.49,1.41,1.40,1.37,1.37,1.36,1.35,1.34,1.33],
-      "男": [16.72,16.12,15.54,14.98,14.45,13.93,13.43,12.96,12.50,12.06,11.62,11.21,10.82,10.44,10.07,9.72,9.38,9.05,8.73,8.42,8.12,7.83,7.56,7.29,7.04,6.79,6.55,6.32,6.10,5.89,5.68,5.49,5.30,5.12,4.95,4.78,4.62,4.46,4.31,4.16,4.02,3.88,3.75,3.62,3.49,3.38,3.26,3.15,3.04,2.94,2.83,2.74,2.65,2.56,2.48,2.40,2.32,2.24,2.17,2.10,2.03,1.96,1.90,1.84,1.78,1.72,1.66,1.61,1.55,1.50,1.45,1.39,1.39,1.38,1.38,1.35,1.35,1.34,1.33,1.32,1.32]
+      maxAge: 78,
+      "女": [21.85,21.06,20.27,19.53,18.84,18.14,17.44,16.84,16.24,15.64,15.09,14.53,13.99,13.48,13.01,12.54,12.08,11.52,11.10,10.70,10.32,9.95,9.59,9.25,8.91,8.58,8.27,7.98,7.69,7.41,7.14,6.88,6.63,6.39,6.16,5.94,5.73,5.52,5.32,5.13,4.95,4.76,4.58,4.40,4.24,4.08,3.92,3.77,3.63,3.49,3.36,3.23,3.11,2.99,2.87,2.76,2.65,2.55,2.45,2.36,2.27,2.18,2.09,2.01,1.93,1.85,1.78,1.71,1.64,1.58,1.51,1.43,1.34,1.26,1.22,1.21,1.19,1.17,1.15],
+      "男": [16.59,15.96,15.38,14.84,14.30,13.77,13.27,12.81,12.33,11.89,11.36,10.97,10.58,10.21,9.86,9.51,9.17,8.84,8.53,8.22,7.93,7.64,7.37,7.11,6.86,6.61,6.37,6.15,5.93,5.72,5.52,5.33,5.14,4.97,4.79,4.63,4.47,4.31,4.16,4.02,3.88,3.74,3.61,3.48,3.35,3.23,3.12,3.01,2.90,2.80,2.70,2.61,2.51,2.43,2.34,2.26,2.18,2.11,2.04,1.97,1.90,1.83,1.76,1.69,1.63,1.57,1.51,1.45,1.39,1.34,1.28,1.25,1.21,1.18,1.16,1.15,1.14,1.14,1.14]
     };
-    function pfkYear10Mult(age, gender) {
-      const table = PFK_Y10[gender === "男" ? "男" : "女"];
-      if (!Number.isInteger(age) || age < PFK_Y10.minAge || age > PFK_Y10.maxAge || !table) return null;
+    function pfkYear6Mult(age, gender) {
+      const table = PFK_Y6[gender === "男" ? "男" : "女"];
+      if (!Number.isInteger(age) || age < PFK_Y6.minAge || age > PFK_Y6.maxAge || !table) return null;
       const v = table[age];
       return (v == null) ? null : v;
     }
@@ -1125,6 +1126,17 @@
         : { minimumFractionDigits: 1, maximumFractionDigits: 1 };
       return r.toLocaleString("zh-TW", opts) + " 萬";
     }
+    function fmtWanFlexible(v) {
+      const r2 = Math.round(v * 100) / 100;
+      const isInt = Math.abs(r2 - Math.round(r2)) < 1e-9;
+      const oneDec = Math.abs(r2 - Math.round(r2 * 10) / 10) < 1e-9;
+      const opts = isInt
+        ? { maximumFractionDigits: 0 }
+        : oneDec
+          ? { minimumFractionDigits: 1, maximumFractionDigits: 1 }
+          : { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+      return r2.toLocaleString("zh-TW", opts) + " 萬";
+    }
 
     function scriptLinesToHtml(parts) {
       return parts.map(function (p) {
@@ -1187,7 +1199,7 @@
       let age = parseInt(ageEl && ageEl.value, 10);
       if (!isFinite(age) || age < 0) age = 30;
       const gender = (genderEl && genderEl.value === "男") ? "男" : "女";
-      const pfkMult = pfkYear10Mult(age, gender);
+      const pfkMult = pfkYear6Mult(age, gender);
 
       if (targetFollowsLoan && document.activeElement !== targetEl) targetEl.value = String(loanWan);
       let targetWan = parseFloat(targetEl.value);
@@ -1197,7 +1209,7 @@
       const mult = ageInRange ? pfkMult : 0;
       if (multEl) multEl.textContent = ageInRange ? fmtMult(pfkMult) : "—";
 
-      // PFK 投入 = 目標保障 ÷ 倍數，取到小數一位萬
+      // PFK 兩年總繳 = 目標保障 ÷ 第6年倍數，取到小數一位萬；從可靈活資金扣總繳全額
       let neededProtectWan = ageInRange && mult > 0 ? Math.round(targetWan / mult * 10) / 10 : 0;
       const pfkCapped = ageInRange && neededProtectWan > leftoverWan + 1e-9;
       let protectWan = pfkCapped ? Math.round(leftoverWan * 10) / 10 : neededProtectWan;
@@ -1210,8 +1222,8 @@
       const cashYearYuan = Math.round(cashWan * 10000 * (cashRatePct / 100));
       const cashMonthYuan = Math.round(cashYearYuan / 12);
       if (ageInRange) {
-        let pfkText = fmtWanBare(protectWan) + "（目標 " + fmtWanBare(targetWan) + " ÷ " + fmtMult(mult) + " 倍）";
-        if (pfkCapped) pfkText = fmtWanBare(protectWan) + "（足額約需 " + fmtWanBare(neededProtectWan) + "，第 10 年保障約 " + fmtWanBare(actualCoverWan) + "）";
+        let pfkText = fmtWanBare(protectWan) + "（目標 " + fmtWanBare(targetWan) + " ÷ " + fmtMult(mult) + " 倍，每年約 " + fmtWanFlexible(protectWan / 2) + "）";
+        if (pfkCapped) pfkText = fmtWanBare(protectWan) + "（足額約需兩年總繳 " + fmtWanBare(neededProtectWan) + "，第 6 年保障約 " + fmtWanBare(actualCoverWan) + "）";
         setText("sum-pfk", pfkText);
       } else {
         setText("sum-pfk", "—");
@@ -1228,12 +1240,12 @@
       setText("sum-at65", isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan) + "（以 6% 複利推估）") : "—");
 
       if (hint) {
-        let hintText = "PFK 投入 " + fmtWanBare(protectWan) + "＝目標保障 " + fmtWanBare(targetWan) + " ÷ " + (ageInRange ? fmtMult(mult) : "—") + " 倍／剩餘投入配息 " + fmtWan(cashWan) + "／多出的配息金流每年約 " + fmt(cashYearYuan) + "、每月約 " + fmt(cashMonthYuan);
+        let hintText = "PFK 兩年總繳 " + fmtWanBare(protectWan) + "＝目標保障 " + fmtWanBare(targetWan) + " ÷ " + (ageInRange ? fmtMult(mult) : "—") + " 倍（每年約 " + fmtWanFlexible(protectWan / 2) + "）／剩餘投入配息 " + fmtWan(cashWan) + "／多出的配息金流每年約 " + fmt(cashYearYuan) + "、每月約 " + fmt(cashMonthYuan);
         if (ageInRange) {
-          hintText += "（PFK 躉繳、中分紅、第 10 年）";
+          hintText += "（PFK 兩年期、中分紅、第 6 年）";
           if (pfkCapped) hintText += "；可靈活資金不足，已全數投入";
         } else {
-          hintText += "／此年紀不在 PFK 躉繳投保年齡 0–80 歲，壽險倍數無法自動帶入";
+          hintText += "／此年紀不在 PFK 兩年期投保年齡 0–78 歲，壽險倍數無法自動帶入";
         }
         hint.textContent = hintText;
       }
@@ -1249,6 +1261,9 @@
       const needYield = fmtWanBare(needWan * divRatePct / 100);
       const left = "約 " + fmtWanBare(leftoverWan);
       const prot = fmtWanBare(protectWan);
+      const protYear = fmtWanFlexible(protectWan / 2);
+      const needProt = fmtWanBare(neededProtectWan);
+      const needProtYear = fmtWanFlexible(neededProtectWan / 2);
       const cover = fmtWanBare(showCoverWan);
       const genderWord = gender === "男" ? "男性" : "女性";
       const spouse = gender === "男" ? "老婆" : "先生";
@@ -1289,14 +1304,14 @@
       } else {
         if (ageInRange && pfkCapped) {
           const goal = targetIsLoan ? ("讓 " + loan + "房貸有足額保障") : ("準備約 " + cover + "的壽險保障");
-          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。為了" + goal + "，依 " + age + " 歲" + genderWord + "的年紀，約需 " + fmtWanBare(neededProtectWan) + "投入終身倍數壽險（例如 PFK）；目前可靈活運用資金是" + left + "，全數放入後，以中分紅估算第 10 年約有 " + cover + "的壽險保障。那" + left + "減掉 " + prot + "，還剩多少？");
+          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。為了" + goal + "，依 " + age + " 歲" + genderWord + "的年紀，終身倍數壽險（例如 PFK）採兩年期繳，以中分紅估算第 6 年的倍數回推，兩年總繳約需 " + needProt + "，分兩年繳、每年約繳 " + needProtYear + "；目前可靈活運用資金是" + left + "，先扣兩年總繳全額後，以中分紅估算第 6 年約有 " + cover + "的壽險保障。那" + left + "減掉 " + prot + "，還剩多少？");
         } else if (ageInRange) {
           const lead = targetIsLoan
-            ? ("為了讓 " + loan + "房貸有足額保障，依 " + age + " 歲" + genderWord + "的年紀，只要放約 " + prot + "在終身倍數壽險（例如 PFK），以中分紅估算第 10 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障隨時可以把房貸還清，" + spouse + "小孩能繼續生活。")
-            : ("為了準備約 " + cover + "的壽險保障，依 " + age + " 歲" + genderWord + "的年紀，只要放約 " + prot + "在終身倍數壽險（例如 PFK），以中分紅估算第 10 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障可以作為家人的護城河。");
-          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。" + lead + "那" + left + "減掉 " + prot + "，還剩多少？");
+            ? ("為了讓 " + loan + "房貸有足額保障，依 " + age + " 歲" + genderWord + "的年紀，終身倍數壽險（例如 PFK）採兩年期繳，以中分紅估算第 6 年的倍數回推，兩年總繳只要約 " + prot + "，分兩年繳、每年約繳 " + protYear + "，第 6 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障隨時可以把房貸還清，" + spouse + "小孩能繼續生活。")
+            : ("為了準備約 " + cover + "的壽險保障，依 " + age + " 歲" + genderWord + "的年紀，終身倍數壽險（例如 PFK）採兩年期繳，以中分紅估算第 6 年的倍數回推，兩年總繳只要約 " + prot + "，分兩年繳、每年約繳 " + protYear + "，第 6 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障可以作為家人的護城河。");
+          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。" + lead + "那" + left + "減掉兩年總繳 " + prot + "，還剩多少？");
         } else {
-          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，原本要用倍數反算終身倍數壽險（例如 PFK）該放多少；此年紀不在躉繳投保年齡 0–80 歲，第 10 年壽險倍數無法自動估算。那" + left + "先保留作為可靈活運用資金。");
+          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，原本要用第 6 年倍數反算兩年期終身倍數壽險（例如 PFK）的兩年總繳保費；此年紀不在兩年期投保年齡 0–78 歲，第 6 年壽險倍數無法自動估算。那" + left + "先保留作為可靈活運用資金。");
         }
         cli("大概 " + fmtWanBare(cashWan) + "。");
         biz(cash + "再拿去配置配息，配息率一樣算 " + cashRateS + "，一年大概有 " + cashYear + "，平均一個月大概有 " + cashMonth + "，這就是多出來的配息金流！");
