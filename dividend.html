@@ -489,14 +489,14 @@
       if (m[4] != null) return d + " " + String(m[4]).padStart(2, "0") + ":" + m[5];
       return d;
     }
-    function fmtPfkFx() {
+    function fmtFpeFx() {
       if (MARKET.usd_twd == null) return "";
       return String(parseFloat(Number(MARKET.usd_twd).toFixed(4)));
     }
     function renderMarketBar() {
       const el = document.getElementById("market-bar");
       if (!el) return;
-      const fx = fmtPfkFx();
+      const fx = fmtFpeFx();
       const posted = fmtDateTimeTw(MARKET.usd_twd_posted_at || MARKET.usd_twd_date);
       const upd = fmtDateTimeTw(MARKET.updated_at);
       if (fx && posted) {
