@@ -639,6 +639,14 @@
       .metrics { grid-template-columns: 1fr; }
     }
 
+    .yt-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 4px 0 8px; border: 1px solid var(--sky-300, #b6d0e2); border-radius: 10px; }
+    table.yearly { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+    table.yearly th, table.yearly td { padding: 7px 10px; text-align: right; white-space: nowrap; border-bottom: 1px solid #e3edf4; }
+    table.yearly thead th { position: sticky; top: 0; background: #eef5fa; color: var(--blue-deep); font-weight: 700; text-align: center; }
+    table.yearly td.c { text-align: center; }
+    table.yearly tbody tr:nth-child(even) td { background: #f8fbfd; }
+    table.yearly td.usd { color: var(--muted); font-size: 0.88rem; }
+    .yt-meta { margin: 0 0 8px; font-size: 0.9rem; color: var(--blue-deep); font-weight: 600; line-height: 1.6; }
     .script-tools {
       display: grid;
       gap: 10px 14px;
@@ -968,6 +976,19 @@
         <p class="note">配息率非保證。</p>
       </section>
 
+      <section class="card" id="yearly-card">
+        <h2 class="section-title">逐年房貸餘額與 FPE 解約金（中分紅）</h2>
+        <p class="yt-meta" id="yt-meta"></p>
+        <p id="yt-empty" class="placeholder hidden">請先完成上方房產價值與配息試算，即可帶出逐年表。</p>
+        <div class="yt-wrap" id="yt-wrap">
+          <table class="yearly" id="yt-table">
+            <thead><tr><th>保單年度</th><th>年齡</th><th>年底房貸剩餘本金</th><th>FPE 年度末解約金（台幣）</th><th>美元</th></tr></thead>
+            <tbody id="yt-body"></tbody>
+          </table>
+        </div>
+        <p class="note" id="yt-note">紅利非保證，解約金依中分紅假設，以臺灣銀行即期賣出匯率換算。每萬美元保額比例換算，與建議書可能有些微差異，實際以建議書為準。房貸剩餘本金依本息平均攤還、利率不變試算；實際依銀行核貸及還款紀錄為準。</p>
+      </section>
+
       <section class="card" id="script-card">
         <h2 class="section-title">話術稿</h2>
         <div class="script-tools" id="script-tools">
@@ -1145,6 +1166,68 @@
         const appEl = document.getElementById("app");
         if (appEl && !appEl.classList.contains("hidden") && typeof recalc === "function") recalc();
       });
+    }
+    // FPE 兩年期、中分紅、各保單年度末解約總額（每 1 萬美元保額，美元）；由 fpe_cv.json 載入
+    let FPE_CV = null;
+    function loadFpeCv() {
+      return fetch("fpe_cv.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (d) {
+        if (d && d["女"] && d["男"]) FPE_CV = d;
+        const appEl = document.getElementById("app");
+        if (FPE_CV && appEl && !appEl.classList.contains("hidden") && typeof recalc === "function") recalc();
+      });
+    }
+    function fpeCvUsd(age, gender, S, t) {
+      if (!FPE_CV) return null;
+      const tb = FPE_CV[gender === "男" ? "男" : "女"];
+      const row = tb && tb[age];
+      const v = row ? row[t - 1] : null;
+      return (v == null || !isFinite(v)) ? null : Math.round(v * S);
+    }
+    // 每年年底房貸剩餘本金（本息平均攤還，與 monthlyPayment 一致）
+    function mortgageBalanceAfterMonths(principal, annualPct, years, k) {
+      const n = years * 12, r = annualPct / 100 / 12;
+      if (k >= n) return 0;
+      if (r === 0) return principal * (1 - k / n);
+      const pay = monthlyPayment(principal, annualPct, years);
+      const g = Math.pow(1 + r, k);
+      return Math.max(0, principal * g - pay * (g - 1) / r);
+    }
+    function renderYearlyTable(o) {
+      const body = document.getElementById("yt-body");
+      const meta = document.getElementById("yt-meta");
+      const empty = document.getElementById("yt-empty");
+      const wrap = document.getElementById("yt-wrap");
+      if (!body) return;
+      if (!o) {
+        body.innerHTML = ""; if (meta) meta.textContent = "";
+        if (empty) empty.classList.remove("hidden"); if (wrap) wrap.classList.add("hidden");
+        return;
+      }
+      if (empty) empty.classList.add("hidden"); if (wrap) wrap.classList.remove("hidden");
+      let S = null;
+      if (o.ageInRange && o.protectWan > 0) {
+        const rate = fpeTerm2Rate(o.age, o.gender);
+        const face = rate ? fpeFaceFromPremUsd(o.protectWan * 10000 / FPE_FX, rate, fpeSmax(o.age)) : null;
+        if (face) S = face.S;
+      }
+      const hasCv = !!FPE_CV && S != null;
+      if (meta) {
+        let m = "房貸 " + fmtWanBare(o.loanWan) + "、年利率 " + fmtRatePct(o.annualPct) + "、" + o.years + " 年本息平均攤還";
+        if (S != null) m += "；FPE 2 年期、中分紅，基本保額約 " + fmtWanUsd(S) + "（兩年總繳約 " + fmtWanBare(o.protectWan) + "，匯率 " + fmtFpeFx() + "）";
+        else if (!o.ageInRange) m += "；此年紀不在 FPE 兩年期投保年齡 0–78 歲";
+        if (S != null && !FPE_CV) m += "；FPE 逐年解約金資料準備中";
+        meta.textContent = m;
+      }
+      const P = o.loanWan * 10000;
+      let html = "";
+      for (let t = 1; t <= o.years; t++) {
+        const bal = mortgageBalanceAfterMonths(P, o.annualPct, o.years, t * 12);
+        const usd = hasCv ? fpeCvUsd(o.age, o.gender, S, t) : null;
+        const twd = usd != null ? Math.round(usd * FPE_FX) : null;
+        html += "<tr><td class=\"c\">" + t + "</td><td class=\"c\">" + (o.age + t - 1) + "</td><td>" + fmt(bal) + "</td><td>" +
+          (twd != null ? fmt(twd) : "—") + "</td><td class=\"usd\">" + (usd != null ? "US$ " + usd.toLocaleString("en-US") : "—") + "</td></tr>";
+      }
+      body.innerHTML = html;
     }
     function fmtWanUsd(S) {
       const r = Math.round(S * 10) / 10;
@@ -1367,6 +1450,7 @@
         ["sum-fpe","sum-cash","sum-extra","sum-at65","sum-fpe-info"].forEach(function (k) { setText(k, "—"); });
         setText("fpe-info", "FPE 商品資訊：—");
         setText("fpe-fx-note", fmtFpeFx());
+        renderYearlyTable(null);
         return;
       }
       if (empty) empty.classList.add("hidden");
@@ -1430,6 +1514,7 @@
       setText("sum-fpe-info", fpeInfo);
       setText("fpe-info", fpeInfo);
       setText("fpe-fx-note", fmtFpeFx());
+      renderYearlyTable({ loanWan: loanWan, annualPct: annualPct, years: years, age: age, gender: gender, protectWan: protectWan, ageInRange: ageInRange });
 
       if (hint) {
         let hintText = "FPE 兩年總繳 " + fmtWanBare(protectWan) + "＝目標保障 " + fmtWanBare(targetWan) + " ÷ " + (ageInRange ? fmtMult(mult) : "—") + " 倍（每年約 " + fmtWanFlexible(protectWan / 2) + "）／剩餘投入配息 " + fmtWan(cashWan) + "／多出的配息金流每年約 " + fmt(cashYearYuan) + "、每月約 " + fmt(cashMonthYuan);
@@ -1864,6 +1949,7 @@
       showApp();
     }
     loadMarketData();
+    loadFpeCv();
   </script>
 </body>
 </html>
