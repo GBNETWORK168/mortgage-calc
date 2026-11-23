@@ -180,6 +180,15 @@
       font-size: 0.9rem;
     }
     .err.show { display: block; }
+    .title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .title-row .section-title-text { flex: 1; }
+    .btn-reset {
+      flex: none; font: inherit; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em;
+      color: var(--blue-deep); background: #fff; border: 1.5px solid var(--blue-deep);
+      border-radius: 999px; padding: 4px 14px; cursor: pointer; line-height: 1.5;
+    }
+    .btn-reset:hover { background: #eef5fa; }
+    .btn-reset:active { transform: translateY(1px); }
     .section-title {
       font-size: 0.95rem;
       font-weight: 700;
@@ -408,7 +417,7 @@
 
     <div id="app" class="app-grid hidden">
       <section class="card" id="calc-card">
-        <h2 class="section-title">退休配息試算</h2>
+        <h2 class="section-title title-row"><span class="section-title-text">退休配息試算</span><button type="button" class="btn-reset" id="reset-inputs" title="清除這頁暫存的數字，回到初始設定">重新設定</button></h2>
         <div class="inputs">
           <div class="field">
             <label for="principal">本金（萬元）</label>
@@ -830,6 +839,61 @@
         done();
       }
     });
+
+    /* 手動輸入暫存：切換頁面或重新整理後自動還原；「重新設定」才回到初始值（不碰登入資料） */
+    (function () {
+      const KEY = "mc_inputs_dividend";
+      const SKIP = { account: 1, password: 1 };
+      const fields = Array.prototype.slice.call(document.querySelectorAll("#app input[id], #app select[id]")).filter(function (el) {
+        return !SKIP[el.id] && el.type !== "password" && el.type !== "hidden";
+      });
+      const defaults = {};
+      fields.forEach(function (el) {
+        if (el.tagName === "SELECT") {
+          const o = Array.prototype.find.call(el.options, function (x) { return x.defaultSelected; }) || el.options[0];
+          defaults[el.id] = o ? o.value : "";
+        } else {
+          defaults[el.id] = el.defaultValue;
+        }
+      });
+      function save() {
+        try {
+          const v = {};
+          fields.forEach(function (el) { v[el.id] = el.value; });
+          const data = { v: v, t: Date.now() };
+          localStorage.setItem(KEY, JSON.stringify(data));
+        } catch (e) {}
+      }
+      function restore() {
+        let data = null;
+        try { data = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { data = null; }
+        if (!data || !data.v) return;
+        fields.forEach(function (el) {
+          if (Object.prototype.hasOwnProperty.call(data.v, el.id) && data.v[el.id] != null) {
+            if (el.tagName === "SELECT" && !Array.prototype.some.call(el.options, function (x) { return x.value === data.v[el.id]; })) return;
+            el.value = data.v[el.id];
+          }
+        });
+      }
+      function later(e) { if (e && e.target && e.target.closest && e.target.closest("#reset-inputs")) return; setTimeout(save, 0); }
+      restore();
+      document.addEventListener("input", later, true);
+      document.addEventListener("change", later, true);
+      document.addEventListener("click", later, true);
+      document.addEventListener("keydown", later, true);
+      window.addEventListener("pagehide", save);
+      document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") save(); });
+      window.McInputs = { save: save };
+      const btn = document.getElementById("reset-inputs");
+      if (btn) btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (!window.confirm("要清除這頁暫存的數字，回到初始設定嗎？")) return;
+        try { localStorage.removeItem(KEY); } catch (err) {}
+        fields.forEach(function (el) { el.value = defaults[el.id]; });
+        if (typeof recalc === "function") recalc();
+        try { localStorage.removeItem(KEY); } catch (err) {}
+      }, true);
+    })();
 
     /* 登入由共用登入關卡 auth.js 負責；通過關卡就直接顯示（舊的頁內登入框保留作後備） */
     if ((window.SiteAuth && SiteAuth.isAuthed()) || sessionStorage.getItem(AUTH_KEY) === "1") {
