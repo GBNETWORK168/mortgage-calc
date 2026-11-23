@@ -1251,6 +1251,7 @@
       const prot = fmtWanBare(protectWan);
       const cover = fmtWanBare(showCoverWan);
       const genderWord = gender === "男" ? "男性" : "女性";
+      const spouse = gender === "男" ? "老婆" : "先生";
       const targetIsLoan = Math.round(targetWan * 10) === Math.round(loanWan * 10);
       const cash = "約 " + fmtWanBare(cashWan);
       const cashYear = fmt(cashYearYuan);
@@ -1288,14 +1289,14 @@
       } else {
         if (ageInRange && pfkCapped) {
           const goal = targetIsLoan ? ("讓 " + loan + "房貸有足額保障") : ("準備約 " + cover + "的壽險保障");
-          biz("對！但因為我們有老婆跟小孩，不能有任何事情，必須幫自己搭建一個護城河。為了" + goal + "，依 " + age + " 歲" + genderWord + "的年紀，約需 " + fmtWanBare(neededProtectWan) + "投入終身倍數壽險（例如 PFK）；目前可靈活運用資金是" + left + "，全數放入後，以中分紅估算第 10 年約有 " + cover + "的壽險保障。那" + left + "減掉 " + prot + "，還剩多少？");
+          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。為了" + goal + "，依 " + age + " 歲" + genderWord + "的年紀，約需 " + fmtWanBare(neededProtectWan) + "投入終身倍數壽險（例如 PFK）；目前可靈活運用資金是" + left + "，全數放入後，以中分紅估算第 10 年約有 " + cover + "的壽險保障。那" + left + "減掉 " + prot + "，還剩多少？");
         } else if (ageInRange) {
           const lead = targetIsLoan
-            ? ("為了讓 " + loan + "房貸有足額保障，依 " + age + " 歲" + genderWord + "的年紀，只要放約 " + prot + "在終身倍數壽險（例如 PFK），以中分紅估算第 10 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障隨時可以把房貸還清，老婆小孩能繼續生活。")
+            ? ("為了讓 " + loan + "房貸有足額保障，依 " + age + " 歲" + genderWord + "的年紀，只要放約 " + prot + "在終身倍數壽險（例如 PFK），以中分紅估算第 10 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障隨時可以把房貸還清，" + spouse + "小孩能繼續生活。")
             : ("為了準備約 " + cover + "的壽險保障，依 " + age + " 歲" + genderWord + "的年紀，只要放約 " + prot + "在終身倍數壽險（例如 PFK），以中分紅估算第 10 年就有約 " + cover + "的壽險保障。意思是如果真的有狀況，這筆保障可以作為家人的護城河。");
-          biz("對！但因為我們有老婆跟小孩，不能有任何事情，必須幫自己搭建一個護城河。" + lead + "那" + left + "減掉 " + prot + "，還剩多少？");
+          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。" + lead + "那" + left + "減掉 " + prot + "，還剩多少？");
         } else {
-          biz("對！但因為我們有老婆跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，原本要用倍數反算終身倍數壽險（例如 PFK）該放多少；此年紀不在躉繳投保年齡 0–80 歲，第 10 年壽險倍數無法自動估算。那" + left + "先保留作為可靈活運用資金。");
+          biz("對！但因為我們有" + spouse + "跟小孩，不能有任何事情，必須幫自己搭建一個護城河。依照 " + age + " 歲的年紀，原本要用倍數反算終身倍數壽險（例如 PFK）該放多少；此年紀不在躉繳投保年齡 0–80 歲，第 10 年壽險倍數無法自動估算。那" + left + "先保留作為可靈活運用資金。");
         }
         cli("大概 " + fmtWanBare(cashWan) + "。");
         biz(cash + "再拿去配置配息，配息率一樣算 " + cashRateS + "，一年大概有 " + cashYear + "，平均一個月大概有 " + cashMonth + "，這就是多出來的配息金流！");
