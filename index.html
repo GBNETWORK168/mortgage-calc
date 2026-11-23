@@ -1421,10 +1421,11 @@
       let monthAt65Yuan = NaN;
       if (age < 65 && cashYearYuan > 0) {
         const nYr = 65 - age;
-        const fv = cashYearYuan * (Math.pow(1.06, nYr) - 1) / 0.06;
+        const r = cashRatePct / 100;
+        const fv = cashYearYuan * (Math.pow(1 + r, nYr) - 1) / r;
         monthAt65Yuan = fv * (cashRatePct / 100) / 12;
       }
-      setText("sum-at65", isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan) + "（以 6% 複利推估）") : "—");
+      setText("sum-at65", isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan) + "（以配息率 " + fmtRatePct(cashRatePct) + " 複利推估）") : "—");
       const fpeInfo = fpeProductLine(age, gender, protectWan, showCoverWan, ageInRange);
       setText("sum-fpe-info", fpeInfo);
       setText("fpe-info", fpeInfo);
