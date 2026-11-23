@@ -624,6 +624,14 @@
       border-color: var(--blue);
       font-weight: 700;
     }
+    .market-bar {
+      margin: 10px auto 0;
+      max-width: 36rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+      line-height: 1.55;
+    }
     @media (max-width: 380px) {
       .metrics { grid-template-columns: 1fr; }
     }
@@ -728,6 +736,7 @@
         <a href="index.html" aria-current="page">讓你的房產更有價值</a>
         <a href="dividend.html">小資也能輕鬆退休</a>
       </nav>
+      <p class="market-bar" id="market-bar">市場資料載入中…</p>
     </header>
 
     <section id="login-card" class="card">
@@ -877,7 +886,7 @@
               <tbody></tbody>
             </table>
           </div>
-          <p class="note">資料來源：團隊官網配息基金頁（淨值日期 2026/11/18，資料更新 2026/11/20 09:24）。配息率非保證。</p>
+          <p class="note" id="fund-note">資料來源：團隊官網配息基金頁。配息率非保證。</p>
         </section>
       </div>
 
@@ -974,7 +983,7 @@
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
         </div>
         <p class="pfk-info" id="pfk-info">PFK 商品資訊：—</p>
-        <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。PFK 兩年總繳保費＝目標壽險保障 ÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。基本保額依報價頁預設匯率 <span id="pfk-fx-note"></span>，由兩年總繳反算為美元保額。倍數來源：PFK 快速報價，兩年期、中分紅、第 6 保單年度；紅利非保證。</p>
+        <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。PFK 兩年總繳保費＝目標壽險保障 ÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。基本保額依臺灣銀行牌告即期賣出匯率 <span id="pfk-fx-note"></span>，由兩年總繳反算為美元保額。倍數來源：PFK 快速報價，兩年期、中分紅、第 6 保單年度；紅利非保證。</p>
       </section>
 
       <div class="foot">
@@ -986,7 +995,7 @@
   <script>
     const AUTH_KEY = "mc_auth";
     const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
-    const FUNDS = [
+    let FUNDS = [
       {code:"ACE17", name:"聯博美國成長 AP總報酬月配", rate:14.88, risk:"RR4"},
       {code:"DST3", name:"安聯AI收益成長 B月配(美元)", rate:10.46, risk:"RR3"},
       {code:"SCP6", name:"施羅德環球收益成長 A月配固定2", rate:10.45, risk:"RR3"},
@@ -1017,7 +1026,7 @@
       const v = table[age];
       return (v == null) ? null : v;
     }
-    const PFK_FX = 32.92;
+    let PFK_FX = 32.92;
     const PFK_SMIN = 2;
     const PFK_SMAX = 200;
     const PFK_RATE_T2 = {
@@ -1048,6 +1057,75 @@
     }
     function fmtPfkFx() {
       return String(parseFloat(Number(PFK_FX).toFixed(4)));
+    }
+    const MARKET = {
+      usd_twd: PFK_FX,
+      usd_twd_kind: "即期賣出",
+      usd_twd_source: "臺灣銀行牌告匯率",
+      usd_twd_posted_at: "",
+      usd_twd_date: "",
+      updated_at: ""
+    };
+    function fmtDateTimeTw(s) {
+      if (!s) return "";
+      const m = String(s).match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s](\d{1,2}):(\d{2}))?/);
+      if (!m) return String(s);
+      const d = m[1] + "/" + String(m[2]).padStart(2, "0") + "/" + String(m[3]).padStart(2, "0");
+      if (m[4] != null) return d + " " + String(m[4]).padStart(2, "0") + ":" + m[5];
+      return d;
+    }
+    function renderMarketBar() {
+      const el = document.getElementById("market-bar");
+      if (!el) return;
+      const fx = fmtPfkFx();
+      const posted = fmtDateTimeTw(MARKET.usd_twd_posted_at || MARKET.usd_twd_date);
+      const upd = fmtDateTimeTw(MARKET.updated_at);
+      if (posted) {
+        el.textContent = "美元兌台幣即期賣出 " + fx + "（臺灣銀行牌告，掛牌 " + posted + "）／資料更新日期 " + (upd || posted);
+      } else {
+        el.textContent = "美元兌台幣即期賣出 " + fx;
+      }
+    }
+    function applyMarket(m) {
+      if (m && Number(m.usd_twd) > 0) {
+        PFK_FX = Number(m.usd_twd);
+        MARKET.usd_twd = PFK_FX;
+        MARKET.usd_twd_kind = m.usd_twd_kind || MARKET.usd_twd_kind;
+        MARKET.usd_twd_source = m.usd_twd_source || MARKET.usd_twd_source;
+        MARKET.usd_twd_posted_at = m.usd_twd_posted_at || "";
+        MARKET.usd_twd_date = m.usd_twd_date || "";
+        MARKET.updated_at = m.updated_at || "";
+      }
+      renderMarketBar();
+      const note = document.getElementById("pfk-fx-note");
+      if (note) note.textContent = fmtPfkFx();
+    }
+    function applyFunds(data) {
+      if (!data || !Array.isArray(data.funds) || !data.funds.length) return;
+      FUNDS = data.funds.filter(function (f) {
+        return f && f.code && f.rate != null && isFinite(Number(f.rate));
+      }).map(function (f) {
+        return { code: f.code, name: f.name, rate: Number(f.rate), risk: f.risk || "" };
+      });
+      const note = document.getElementById("fund-note");
+      if (note) {
+        const nav = fmtDateTimeTw(data.nav_date) || "—";
+        const upd = fmtDateTimeTw(data.updated_at) || "—";
+        note.textContent = "資料來源：團隊官網配息基金頁（淨值日期 " + nav + "，資料更新 " + upd + "）。配息率非保證。";
+      }
+      const appEl = document.getElementById("app");
+      if (appEl && !appEl.classList.contains("hidden") && typeof renderFunds === "function") renderFunds();
+    }
+    function loadMarketData() {
+      return Promise.all([
+        fetch("market.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+        fetch("funds.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+      ]).then(function (pair) {
+        applyMarket(pair[0]);
+        applyFunds(pair[1]);
+        const appEl = document.getElementById("app");
+        if (appEl && !appEl.classList.contains("hidden") && typeof recalc === "function") recalc();
+      });
     }
     function fmtWanUsd(S) {
       const r = Math.round(S * 10) / 10;
@@ -1759,6 +1837,7 @@
     if (sessionStorage.getItem(AUTH_KEY) === "1") {
       showApp();
     }
+    loadMarketData();
   </script>
 </body>
 </html>

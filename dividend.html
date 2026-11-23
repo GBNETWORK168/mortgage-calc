@@ -95,6 +95,14 @@
       border-color: var(--blue);
       font-weight: 700;
     }
+    .market-bar {
+      margin: 10px auto 0;
+      max-width: 36rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+      line-height: 1.55;
+    }
     .card {
       background: var(--card);
       border-radius: var(--radius);
@@ -372,6 +380,7 @@
         <a href="index.html">讓你的房產更有價值</a>
         <a href="dividend.html" aria-current="page">小資也能輕鬆退休</a>
       </nav>
+      <p class="market-bar" id="market-bar">市場資料載入中…</p>
     </header>
 
     <section id="login-card" class="card">
@@ -434,7 +443,7 @@
             </table>
           </div>
           <p class="fee-note" id="fee-note">每年配息回存扣除 5% 手續費</p>
-          <p class="note">配息率非保證，未計匯率與淨值變動，僅供試算參考。</p>
+          <p class="note" id="market-note">配息率非保證，未計匯率與淨值變動，僅供試算參考。</p>
         </div>
         <p id="empty" class="placeholder hidden">請輸入大於 0 的本金、0 以上的配息率與回存手續費，以及 1 到 65 歲的年紀。</p>
       </section>
@@ -463,6 +472,62 @@
     const app = document.getElementById("app");
     const loginForm = document.getElementById("login-form");
     const loginErr = document.getElementById("login-err");
+
+    const MARKET = {
+      usd_twd: null,
+      usd_twd_kind: "即期賣出",
+      usd_twd_source: "臺灣銀行牌告匯率",
+      usd_twd_posted_at: "",
+      usd_twd_date: "",
+      updated_at: ""
+    };
+    function fmtDateTimeTw(s) {
+      if (!s) return "";
+      const m = String(s).match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s](\d{1,2}):(\d{2}))?/);
+      if (!m) return String(s);
+      const d = m[1] + "/" + String(m[2]).padStart(2, "0") + "/" + String(m[3]).padStart(2, "0");
+      if (m[4] != null) return d + " " + String(m[4]).padStart(2, "0") + ":" + m[5];
+      return d;
+    }
+    function fmtPfkFx() {
+      if (MARKET.usd_twd == null) return "";
+      return String(parseFloat(Number(MARKET.usd_twd).toFixed(4)));
+    }
+    function renderMarketBar() {
+      const el = document.getElementById("market-bar");
+      if (!el) return;
+      const fx = fmtPfkFx();
+      const posted = fmtDateTimeTw(MARKET.usd_twd_posted_at || MARKET.usd_twd_date);
+      const upd = fmtDateTimeTw(MARKET.updated_at);
+      if (fx && posted) {
+        el.textContent = "美元兌台幣即期賣出 " + fx + "（臺灣銀行牌告，掛牌 " + posted + "）／資料更新日期 " + (upd || posted);
+      } else if (fx) {
+        el.textContent = "美元兌台幣即期賣出 " + fx;
+      } else {
+        el.textContent = "市場資料載入中…";
+      }
+      const note = document.getElementById("market-note");
+      if (note && upd) {
+        note.textContent = "配息率非保證，未計匯率與淨值變動，僅供試算參考。資料更新日期 " + upd + "。";
+      }
+    }
+    function applyMarket(m) {
+      if (m && Number(m.usd_twd) > 0) {
+        MARKET.usd_twd = Number(m.usd_twd);
+        MARKET.usd_twd_kind = m.usd_twd_kind || MARKET.usd_twd_kind;
+        MARKET.usd_twd_source = m.usd_twd_source || MARKET.usd_twd_source;
+        MARKET.usd_twd_posted_at = m.usd_twd_posted_at || "";
+        MARKET.usd_twd_date = m.usd_twd_date || "";
+        MARKET.updated_at = m.updated_at || "";
+      }
+      renderMarketBar();
+    }
+    function loadMarketData() {
+      return fetch("market.json", { cache: "no-store" })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; })
+        .then(function (m) { applyMarket(m); });
+    }
 
     function fmtYuan(v) {
       return Math.round(v).toLocaleString("zh-TW") + " 元";
@@ -761,6 +826,7 @@
     if (sessionStorage.getItem(AUTH_KEY) === "1") {
       showApp();
     }
+    loadMarketData();
   </script>
 </body>
 </html>
