@@ -569,6 +569,17 @@
       font-size: 1.08rem;
       line-height: 1.45;
     }
+    table.summary tr.sum-settings td {
+      text-align: left; font-weight: 400; color: var(--ink, #1f2d3a);
+      padding: 14px 12px 6px; background: #f5f9fc;
+      border-left: 4px solid var(--blue); font-variant-numeric: normal;
+    }
+    .fpe-settings-title {
+      margin: 0 0 10px; font-weight: 700; color: var(--blue-deep); font-size: 0.98rem; letter-spacing: 0.06em;
+    }
+    .fpe-settings .script-tools { margin-bottom: 10px; }
+    .fpe-settings .script-computed { margin-bottom: 8px; }
+    .fpe-settings .fpe-warn { margin-bottom: 10px; }
     table.summary td.sum-plus { color: var(--plus); }
     table.summary td.sum-minus { color: var(--minus); }
     .sum-close {
@@ -606,6 +617,7 @@
         padding: 0 6px 10px;
       }
       table.summary tr.sum-flex td { padding-bottom: 12px; }
+      table.summary tr.sum-settings td { padding: 12px 10px 4px; }
     }
     @media (min-width: 900px) {
       .split { grid-template-columns: minmax(280px, 0.8fr) minmax(480px, 1.3fr); }
@@ -955,6 +967,36 @@
               <th>可靈活運用資金</th>
               <td id="sum-flex">—</td>
             </tr>
+            <tr class="sum-settings">
+              <td colspan="2">
+                <div class="fpe-settings" id="fpe-settings">
+                  <p class="fpe-settings-title">FPE 規劃設定</p>
+                    <div class="script-tools" id="script-tools">
+                      <div class="field">
+                        <label for="script-target" class="label-row">目標壽險保障（萬元） <button type="button" class="sync-link" id="sync-target">同房貸金額</button></label>
+                        <input id="script-target" type="number" inputmode="decimal" min="0" step="any" value="1000">
+                      </div>
+                      <div class="field">
+                        <label for="script-ratio">保額與壽險比例（%，內建 100）</label>
+                        <input id="script-ratio" type="number" inputmode="decimal" min="0" step="any" value="100">
+                      </div>
+                      <div class="field">
+                        <label id="script-protect-label">FPE 兩年總繳保費（自動反算）</label>
+                        <p class="readonly-val" id="script-protect" aria-labelledby="script-protect-label">118.9 萬</p>
+                      </div>
+                      <div class="field">
+                        <label id="script-mult-label">壽險保額倍數（自動帶入）</label>
+                        <p class="readonly-val" id="script-mult" role="text" aria-readonly="true" aria-labelledby="script-mult-label">8.41</p>
+                      </div>
+                    </div>
+                    <div class="fpe-warn hidden" id="fpe-warn" role="alert">
+                      <p class="fw-main">⚠️ 可運用資金不足規劃足額需求</p>
+                      <p class="fw-sub" id="fpe-warn-sub"></p>
+                    </div>
+                    <p class="script-computed" id="script-computed"></p>
+                </div>
+              </td>
+            </tr>
             <tr>
               <th>FPE 兩年總繳（目標保障 ÷ 第 6 年倍數）</th>
               <td id="sum-fpe">—</td>
@@ -1008,29 +1050,6 @@
 
       <section class="card" id="script-card">
         <h2 class="section-title">話術稿</h2>
-        <div class="script-tools" id="script-tools">
-          <div class="field">
-            <label for="script-target" class="label-row">目標壽險保障（萬元） <button type="button" class="sync-link" id="sync-target">同房貸金額</button></label>
-            <input id="script-target" type="number" inputmode="decimal" min="0" step="any" value="1000">
-          </div>
-          <div class="field">
-            <label for="script-ratio">保額與壽險比例（%，內建 100）</label>
-            <input id="script-ratio" type="number" inputmode="decimal" min="0" step="any" value="100">
-          </div>
-          <div class="field">
-            <label id="script-protect-label">FPE 兩年總繳保費（自動反算）</label>
-            <p class="readonly-val" id="script-protect" aria-labelledby="script-protect-label">118.9 萬</p>
-          </div>
-          <div class="field">
-            <label id="script-mult-label">壽險保額倍數（自動帶入）</label>
-            <p class="readonly-val" id="script-mult" role="text" aria-readonly="true" aria-labelledby="script-mult-label">8.41</p>
-          </div>
-        </div>
-        <div class="fpe-warn hidden" id="fpe-warn" role="alert">
-          <p class="fw-main">⚠️ 可運用資金不足規劃足額需求</p>
-          <p class="fw-sub" id="fpe-warn-sub"></p>
-        </div>
-        <p class="script-computed" id="script-computed"></p>
         <p id="script-empty" class="placeholder hidden">請先完成上方房產價值與配息試算，即可帶出話術稿。</p>
         <div id="script-body" class="script-body"></div>
         <div class="copy-row">
