@@ -671,19 +671,24 @@
       color: var(--blue-deep);
       line-height: 1.55;
     }
-    .script-body { display: flex; flex-direction: column; gap: 10px; }
+    .script-body { display: flex; flex-direction: column; gap: 6px; }
     .script-sec {
-      font-size: 0.9rem;
       font-weight: 700;
       color: var(--blue-deep);
       letter-spacing: 0.06em;
-      margin: 6px 0 0;
+      font-size: 1.02rem;
+      margin: 8px 0 0;
     }
     .script-line {
+      margin: 0;
       border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.92rem;
-      line-height: 1.75;
+      padding: 7px 12px;
+      font-size: 1.08rem;
+      line-height: 1.6;
+    }
+    @media (max-width: 520px) {
+      .script-body { gap: 5px; }
+      .script-line { font-size: 1.05rem; padding: 6px 10px; line-height: 1.6; }
     }
     .script-line.biz {
       background: var(--sky-100);
