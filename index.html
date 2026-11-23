@@ -642,6 +642,27 @@
       font-size: 0.8rem;
       color: var(--muted);
     }
+    .pfk-info {
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      background: #eef5fa;
+      border: 1px solid var(--sky-300, #b6d0e2);
+      border-left: 4px solid var(--blue);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--blue-deep);
+      line-height: 1.7;
+    }
+    table.summary tr.sum-pfk-info th {
+      color: var(--blue-deep);
+      font-weight: 700;
+    }
+    table.summary tr.sum-pfk-info td {
+      font-weight: 700;
+      color: var(--blue-deep);
+      line-height: 1.55;
+    }
     .script-body { display: flex; flex-direction: column; gap: 10px; }
     .script-sec {
       font-size: 0.9rem;
@@ -908,6 +929,10 @@
               <th>65 歲每月配息推估</th>
               <td id="sum-at65">—</td>
             </tr>
+            <tr class="sum-pfk-info">
+              <th>PFK 商品資訊</th>
+              <td id="sum-pfk-info">—</td>
+            </tr>
             <tr>
               <th>配置配息本金</th>
               <td id="sum-prin">—</td>
@@ -948,7 +973,8 @@
         <div class="copy-row">
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
         </div>
-        <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。PFK 兩年總繳保費＝目標壽險保障 ÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。倍數來源：PFK 快速報價，兩年期、中分紅、第 6 保單年度；紅利非保證。</p>
+        <p class="pfk-info" id="pfk-info">PFK 商品資訊：—</p>
+        <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。PFK 兩年總繳保費＝目標壽險保障 ÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。基本保額依報價頁預設匯率 32.92，由兩年總繳反算為美元保額。倍數來源：PFK 快速報價，兩年期、中分紅、第 6 保單年度；紅利非保證。</p>
       </section>
 
       <div class="foot">
@@ -991,6 +1017,56 @@
       const v = table[age];
       return (v == null) ? null : v;
     }
+    const PFK_FX = 32.92;
+    const PFK_SMIN = 2;
+    const PFK_SMAX = 200;
+    const PFK_RATE_T2 = {
+      "女": [270,280,291,302,313,325,338,350,363,377,391,406,422,438,454,471,489,508,527,547,567,588,610,633,657,682,708,734,762,790,821,852,884,917,951,987,1024,1062,1102,1144,1186,1234,1283,1334,1387,1442,1499,1559,1621,1685,1753,1825,1899,1977,2057,2141,2228,2319,2413,2512,2613,2723,2838,2957,3082,3212,3347,3488,3635,3788,3948,4199,4466,4750,4800,4850,4900,4950,5000],
+      "男": [356,370,384,398,413,429,445,461,479,497,515,534,554,574,595,617,640,664,688,714,740,768,796,826,856,888,921,955,990,1027,1064,1103,1142,1183,1226,1270,1316,1363,1412,1463,1516,1573,1632,1693,1757,1823,1891,1962,2035,2111,2190,2269,2352,2437,2526,2617,2712,2811,2913,3018,3128,3254,3386,3523,3665,3814,3968,4129,4296,4470,4650,4764,4881,5000,5000,5000,5000,5000,5000]
+    };
+    function pfkTerm2Rate(age, gender) {
+      const table = PFK_RATE_T2[gender === "男" ? "男" : "女"];
+      if (!Number.isInteger(age) || age < 0 || age > 78 || !table) return null;
+      const v = table[age];
+      return (v == null) ? null : v;
+    }
+    function pfkRd(x) { return Math.floor(x + 0.5); }
+    function pfkPremUsdOfS(S, rate) {
+      const d = S >= 20 ? 0.02 : 0.01;
+      const p = Math.floor(Math.round(S * rate * 10) / 10);
+      return pfkRd(p * (1 - d)) * 2;
+    }
+    function pfkFaceFromPremUsd(usdCum, rate) {
+      if (!(usdCum > 0) || !rate) return null;
+      let best = null;
+      for (let S = PFK_SMIN; S <= PFK_SMAX + 1e-9; S = Math.round((S + 0.1) * 10) / 10) {
+        const cum = pfkPremUsdOfS(S, rate);
+        const err = Math.abs(cum - usdCum);
+        if (!best || err < best.err - 1e-9) best = { S: S, cum: cum, err: err };
+      }
+      return best;
+    }
+    function fmtWanUsd(S) {
+      const r = Math.round(S * 10) / 10;
+      const opts = Number.isInteger(r)
+        ? { maximumFractionDigits: 0 }
+        : { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+      return r.toLocaleString("zh-TW", opts) + " 萬美元";
+    }
+    function pfkProductLine(age, gender, protectWan, coverWan, ageInRange) {
+      if (!ageInRange || !(protectWan > 0)) {
+        return ageInRange
+          ? "PFK 商品資訊：—"
+          : "PFK 商品資訊：此年紀不在兩年期投保年齡 0–78 歲，無法帶入保額";
+      }
+      const rate = pfkTerm2Rate(age, gender);
+      const usdCum = protectWan * 10000 / PFK_FX;
+      const face = rate ? pfkFaceFromPremUsd(usdCum, rate) : null;
+      const faceS = face ? ("基本保額約 " + fmtWanUsd(face.S) + "；") : "基本保額無法反算；";
+      return "PFK 商品資訊：2 年期繳、中分紅；" + faceS +
+        "兩年總繳約 " + fmtWanBare(protectWan) + "（每年約 " + fmtWanFlexible(protectWan / 2) + "）；第 6 年身故保障約 " + fmtWanBare(coverWan);
+    }
+
     function fmtMult(v) {
       return (Math.round(v * 100) / 100).toLocaleString("zh-TW", {
         minimumFractionDigits: 2,
@@ -1187,7 +1263,8 @@
         if (hint) hint.textContent = "";
         if (empty) empty.classList.remove("hidden");
         if (copyBtn) copyBtn.disabled = true;
-        ["sum-pfk","sum-cash","sum-extra","sum-at65"].forEach(function (k) { setText(k, "—"); });
+        ["sum-pfk","sum-cash","sum-extra","sum-at65","sum-pfk-info"].forEach(function (k) { setText(k, "—"); });
+        setText("pfk-info", "PFK 商品資訊：—");
         return;
       }
       if (empty) empty.classList.add("hidden");
@@ -1243,6 +1320,9 @@
         monthAt65Yuan = fv * (cashRatePct / 100) / 12;
       }
       setText("sum-at65", isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan) + "（以 6% 複利推估）") : "—");
+      const pfkInfo = pfkProductLine(age, gender, protectWan, showCoverWan, ageInRange);
+      setText("sum-pfk-info", pfkInfo);
+      setText("pfk-info", pfkInfo);
 
       if (hint) {
         let hintText = "PFK 兩年總繳 " + fmtWanBare(protectWan) + "＝目標保障 " + fmtWanBare(targetWan) + " ÷ " + (ageInRange ? fmtMult(mult) : "—") + " 倍（每年約 " + fmtWanFlexible(protectWan / 2) + "）／剩餘投入配息 " + fmtWan(cashWan) + "／多出的配息金流每年約 " + fmt(cashYearYuan) + "、每月約 " + fmt(cashMonthYuan);
