@@ -1506,10 +1506,11 @@
       if (age < 65 && cashYearYuan > 0) {
         const nYr = 65 - age;
         const r = cashRatePct / 100;
-        const fv = cashYearYuan * (Math.pow(1 + r, nYr) - 1) / r;
+        const re = r * (1 - 0.05);
+        const fv = cashYearYuan * 0.95 * (Math.pow(1 + re, nYr) - 1) / re;
         monthAt65Yuan = fv * (cashRatePct / 100) / 12;
       }
-      setText("sum-at65", isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan) + "（以配息率 " + fmtRatePct(cashRatePct) + " 複利推估）") : "—");
+      setText("sum-at65", isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan) + "（以配息率 " + fmtRatePct(cashRatePct) + "、回存扣 5% 手續費複利推估）") : "—");
       const fpeInfo = fpeProductLine(age, gender, protectWan, showCoverWan, ageInRange);
       setText("sum-fpe-info", fpeInfo);
       setText("fpe-info", fpeInfo);
