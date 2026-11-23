@@ -656,6 +656,14 @@
     table.yearly tbody tr:nth-child(even) td { background: #f8fbfd; }
     table.yearly td.usd { color: var(--muted); font-size: 0.88rem; }
     .yt-meta { margin: 0 0 8px; font-size: 0.9rem; color: var(--blue-deep); font-weight: 600; line-height: 1.6; }
+    .fpe-warn {
+      margin: 0 0 14px; padding: 10px 14px; border-radius: 10px;
+      background: #fff4e5; border: 1.5px solid #e8590c; border-left: 5px solid #d9480f; color: #b02a0b;
+    }
+    .fpe-warn .fw-main { margin: 0; font-weight: 800; font-size: 1.02rem; letter-spacing: 0.02em; }
+    .fpe-warn .fw-sub { margin: 3px 0 0; font-size: 0.85rem; font-weight: 600; color: #a33a12; }
+    .sum-warn { display: block; margin-top: 4px; color: #c92a2a; font-weight: 800; }
+    .sum-warn-sub { display: block; color: #a33a12; font-size: 0.85em; font-weight: 600; }
     .script-tools {
       display: grid;
       gap: 10px 14px;
@@ -1017,6 +1025,10 @@
             <label id="script-mult-label">壽險保額倍數（自動帶入）</label>
             <p class="readonly-val" id="script-mult" role="text" aria-readonly="true" aria-labelledby="script-mult-label">8.41</p>
           </div>
+        </div>
+        <div class="fpe-warn hidden" id="fpe-warn" role="alert">
+          <p class="fw-main">⚠️ 可運用資金不足規劃足額需求</p>
+          <p class="fw-sub" id="fpe-warn-sub"></p>
         </div>
         <p class="script-computed" id="script-computed"></p>
         <p id="script-empty" class="placeholder hidden">請先完成上方房產價值與配息試算，即可帶出話術稿。</p>
@@ -1461,6 +1473,7 @@
         if (empty) empty.classList.remove("hidden");
         if (copyBtn) copyBtn.disabled = true;
         ["sum-fpe","sum-cash","sum-extra","sum-at65","sum-fpe-info"].forEach(function (k) { setText(k, "—"); });
+        const wb0 = document.getElementById("fpe-warn"); if (wb0) wb0.classList.add("hidden");
         setText("fpe-info", "FPE 商品資訊：—");
         setText("fpe-fx-note", fmtFpeFx());
         renderYearlyTable(null);
@@ -1521,6 +1534,21 @@
         setText("sum-fpe", fpeText);
       } else {
         setText("sum-fpe", "—");
+      }
+      // 可靈活資金不足以支付 FPE 足額兩年總繳時顯示警告；足夠時完全隱藏
+      const warnBox = document.getElementById("fpe-warn");
+      const warnSubText = "足額約需兩年總繳 " + fmtWanBare(neededProtectWan) + "，目前可用約 " + fmtWanBare(Math.max(0, leftoverWan));
+      if (warnBox) {
+        warnBox.classList.toggle("hidden", !(ageInRange && fpeCapped));
+        setText("fpe-warn-sub", (ageInRange && fpeCapped) ? warnSubText : "");
+      }
+      if (ageInRange && fpeCapped) {
+        const sumFpeEl = document.getElementById("sum-fpe");
+        if (sumFpeEl) {
+          const w = document.createElement("span"); w.className = "sum-warn"; w.textContent = "⚠️ 可運用資金不足規劃足額需求";
+          const ws = document.createElement("span"); ws.className = "sum-warn-sub"; ws.textContent = warnSubText;
+          sumFpeEl.appendChild(w); sumFpeEl.appendChild(ws);
+        }
       }
       setText("sum-cash", fmtWan(cashWan));
       setText("sum-extra", "每年約 " + fmt(cashYearYuan) + "／每月約 " + fmt(cashMonthYuan));
