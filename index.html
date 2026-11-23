@@ -119,14 +119,19 @@
     .readonly-val {
       margin: 0;
       width: 100%;
-      border: 1px solid var(--line);
+      border: 1px dashed var(--sky-300, #b6d0e2);
       border-radius: 10px;
       padding: 12px 14px;
       font-size: 16px;
       font-family: inherit;
-      color: var(--text);
-      background: #e8f1f8;
+      font-weight: 700;
+      color: var(--blue-deep);
+      background: #eef5fa;
       box-sizing: border-box;
+      cursor: default;
+      user-select: text;
+      -webkit-user-select: text;
+      pointer-events: auto;
     }
     .field { margin-bottom: 16px; }
     .field-row {
@@ -933,8 +938,8 @@
             <p class="readonly-val" id="script-protect" aria-labelledby="script-protect-label">140.1 萬</p>
           </div>
           <div class="field">
-            <label id="script-mult-label" for="script-mult">第 6 年壽險倍數</label>
-            <p class="readonly-val" id="script-mult" aria-labelledby="script-mult-label">7.14</p>
+            <label id="script-mult-label">壽險保額倍數（自動帶入）</label>
+            <p class="readonly-val" id="script-mult" role="text" aria-readonly="true" aria-labelledby="script-mult-label">7.14</p>
           </div>
         </div>
         <p class="script-computed" id="script-computed"></p>
