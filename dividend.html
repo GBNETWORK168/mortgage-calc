@@ -364,6 +364,8 @@
     .copy-row {
       display: flex;
       justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 14px;
     }
     .btn-copy {
@@ -371,6 +373,12 @@
       padding: 9px 18px;
       font-size: 0.92rem;
       letter-spacing: 0.1em;
+    }
+    .btn-copy:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: none;
+      transform: none;
     }
     .btn-copy.copied {
       background: linear-gradient(180deg, #3aa06a 0%, #1e7a4a 100%);
@@ -472,6 +480,7 @@
         <div id="script-body" class="script-body"></div>
         <div class="copy-row">
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
+          <button type="button" class="btn btn-copy" id="download-script-pdf">下載話術 PDF</button>
         </div>
         <p class="note" id="script-note">配息率為試算假設數字，配息不保證且可能來自本金；推算已計入回存手續費，未計匯率、稅費與淨值波動。實際以商品公告為準。</p>
       </section>
@@ -482,6 +491,7 @@
     </div>
   </div>
 
+  <script src="script-pdf.js"></script>
   <script>
     const AUTH_KEY = "mc_auth";
     const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
@@ -627,6 +637,8 @@
 
 
     var lastScriptText = "";
+    var lastScriptParts = [];
+    var lastScriptCards = [];
 
     function fmtWanBare(v) {
       const r = Math.round(v * 10) / 10;
@@ -684,12 +696,18 @@
       if (!ok) {
         body.innerHTML = "";
         lastScriptText = "";
+        lastScriptParts = [];
+        lastScriptCards = [];
         if (empty) empty.classList.remove("hidden");
         if (copyBtn) copyBtn.disabled = true;
+        var pdfBtn0 = document.getElementById("download-script-pdf");
+        if (pdfBtn0) pdfBtn0.disabled = true;
         return;
       }
       if (empty) empty.classList.add("hidden");
       if (copyBtn) copyBtn.disabled = false;
+      var pdfBtn1 = document.getElementById("download-script-pdf");
+      if (pdfBtn1) pdfBtn1.disabled = false;
 
       const rate = ratePct / 100;
       const netFactor = 1 + rate * (1 - feePct / 100);
@@ -759,6 +777,15 @@
 
       body.innerHTML = scriptLinesToHtml(parts);
       lastScriptText = scriptLinesToText(parts);
+      lastScriptParts = parts;
+      lastScriptCards = [
+        { label: "投入本金", value: prinS },
+        { label: "每年配息率", value: rateS },
+        { label: "起始年紀", value: startAge + " 歲" },
+        { label: "回存手續費", value: String(parseFloat(Number(feePct).toFixed(4))) + "%" },
+        { label: "65歲本金", value: fmtWanBare(at65.balWan) },
+        { label: "65歲每月配息", value: fmtYuan(at65.monthly) }
+      ];
     }
 
     function showApp() {
@@ -838,6 +865,18 @@
         fallback();
         done();
       }
+    });
+
+    document.getElementById("download-script-pdf").addEventListener("click", function () {
+      if (!lastScriptParts.length || !window.ScriptPdf) return;
+      ScriptPdf.download({
+        pageTitle: "小資也能輕鬆退休",
+        caseName: "案例二：無房客戶與推展流程",
+        fileStem: "小資退休話術",
+        parts: lastScriptParts,
+        cards: lastScriptCards,
+        disclaimer: "配息率為試算假設數字，配息不保證且可能來自本金；推算已計入回存手續費，未計匯率、稅費與淨值波動。實際以商品公告為準。"
+      }, this);
     });
 
     /* 手動輸入暫存：切換頁面或重新整理後自動還原；「重新設定」才回到初始值（不碰登入資料） */

@@ -749,6 +749,8 @@
     .copy-row {
       display: flex;
       justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 14px;
     }
     .btn-copy {
@@ -756,6 +758,12 @@
       padding: 9px 18px;
       font-size: 0.92rem;
       letter-spacing: 0.1em;
+    }
+    .btn-copy:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: none;
+      transform: none;
     }
     .btn-copy.copied {
       background: linear-gradient(180deg, #3aa06a 0%, #1e7a4a 100%);
@@ -1054,6 +1062,7 @@
         <div id="script-body" class="script-body"></div>
         <div class="copy-row">
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
+          <button type="button" class="btn btn-copy" id="download-script-pdf">下載話術 PDF</button>
         </div>
         <p class="fpe-info" id="fpe-info">FPE 商品資訊：—</p>
         <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。FPE 兩年總繳保費＝目標壽險保障 × 保額與壽險比例（內建 100%）÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。基本保額依臺灣銀行牌告即期賣出匯率 <span id="fpe-fx-note"></span>，由兩年總繳反算為美元保額。倍數來源：FPE 快速報價，兩年期、金融機構轉帳、中分紅、第 6 保單年度身故保障 ÷ 兩年總繳，依目標保障換算的保額自動計算；紅利非保證。</p>
@@ -1065,6 +1074,7 @@
     </div>
   </div>
 
+  <script src="script-pdf.js"></script>
   <script>
     const AUTH_KEY = "mc_auth";
     const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
@@ -1427,6 +1437,9 @@
 
     var targetFollowsLoan = true;
     var lastScriptText = "";
+    var lastScriptParts = [];
+    var lastScriptCards = [];
+    var lastScriptMeta = {};
 
     function fmtWanBare(v) {
       const r = Math.round(v * 10) / 10;
@@ -1488,9 +1501,14 @@
       if (!mortOk || !divRateOk) {
         body.innerHTML = "";
         lastScriptText = "";
+        lastScriptParts = [];
+        lastScriptCards = [];
+        lastScriptMeta = {};
         if (hint) hint.textContent = "";
         if (empty) empty.classList.remove("hidden");
         if (copyBtn) copyBtn.disabled = true;
+        var pdfBtn0 = document.getElementById("download-script-pdf");
+        if (pdfBtn0) pdfBtn0.disabled = true;
         ["sum-fpe","sum-cash","sum-extra","sum-at65","sum-fpe-info"].forEach(function (k) { setText(k, "—"); });
         const wb0 = document.getElementById("fpe-warn"); if (wb0) wb0.classList.add("hidden");
         setText("fpe-info", "FPE 商品資訊：—");
@@ -1500,6 +1518,8 @@
       }
       if (empty) empty.classList.add("hidden");
       if (copyBtn) copyBtn.disabled = false;
+      var pdfBtn1 = document.getElementById("download-script-pdf");
+      if (pdfBtn1) pdfBtn1.disabled = false;
 
       const pay = monthlyPayment(loanWan * 10000, annualPct, years);
       const yearYuan = Math.round(pay) * 12;
@@ -1679,6 +1699,19 @@
 
       body.innerHTML = scriptLinesToHtml(parts);
       lastScriptText = scriptLinesToText(parts);
+      lastScriptParts = parts;
+      lastScriptMeta = { age: age };
+      lastScriptCards = [
+        { label: "房產價值", value: prop },
+        { label: "房貸金額", value: loan },
+        { label: "每月還款", value: payS },
+        { label: "打平所需配置", value: need },
+        { label: "可靈活運用資金", value: left },
+        { label: "FPE 兩年總繳", value: ageInRange ? prot : "—" },
+        { label: "剩餘投入配息", value: fmtWanBare(cashWan) },
+        { label: "多出配息／月", value: cashMonth },
+        { label: "65歲每月配息", value: isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan)) : "—" }
+      ];
     }
 
     function recalcPropertyValue() {
@@ -2014,6 +2047,19 @@
         fallback();
         done();
       }
+    });
+
+    document.getElementById("download-script-pdf").addEventListener("click", function () {
+      if (!lastScriptParts.length || !window.ScriptPdf) return;
+      var age = lastScriptMeta.age;
+      ScriptPdf.download({
+        pageTitle: "讓你的房產更有價值",
+        caseName: "案例一：" + (isFinite(age) ? age + " 歲工程師" : "") + "房產活化話術",
+        fileStem: "房產活化話術",
+        parts: lastScriptParts,
+        cards: lastScriptCards,
+        disclaimer: "利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。FPE 倍數與解約金依中分紅假設，紅利非保證。"
+      }, this);
     });
 
     /* 手動輸入暫存：切換頁面或重新整理後自動還原；「重新設定」才回到初始值（不碰登入資料） */
