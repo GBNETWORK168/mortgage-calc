@@ -72,6 +72,11 @@
       ".sp-line.biz .sp-who{color:#0E4E7A;}",
       ".sp-line.cli .sp-who{color:#4E6E85;}",
       ".sp-disc{margin:12px 0 0;font-size:10px;line-height:1.6;color:#4E6E85;}",
+      ".sp-step{margin:0 0 6px;border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.65;background:#E8F4FB;color:#0E4E7A;display:flex;align-items:flex-start;gap:8px;box-sizing:border-box;}",
+      ".sp-step-n{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#1A73B0;color:#fff;font-size:11px;font-weight:700;margin-top:1px;}",
+      ".sp-step-t{flex:1;}",
+      ".sp-card.ok .sp-card-value{color:#146C45;}",
+      ".sp-card.warn .sp-card-value{color:#C2410C;}",
       ".sp-footer{position:absolute;left:" + PAD_X + "px;right:" + PAD_X + "px;bottom:0;height:72px;border-top:1px solid #CDE3F0;display:flex;align-items:center;justify-content:space-between;gap:12px;}",
       ".sp-foot-left{min-width:0;}",
       ".sp-foot-office{margin:0;font-size:12px;font-weight:700;color:#0E4E7A;letter-spacing:0.04em;}",
@@ -125,7 +130,7 @@
     wrap.className = "sp-cards";
     (cards || []).forEach(function (c) {
       var d = document.createElement("div");
-      d.className = "sp-card";
+      d.className = "sp-card" + (c.tone ? (" " + c.tone) : "");
       var l = document.createElement("div");
       l.className = "sp-card-label";
       l.textContent = c.label || "";
@@ -143,6 +148,20 @@
     var p = document.createElement("div");
     p.className = "sp-sec";
     p.textContent = text;
+    return p;
+  }
+
+  function makeStep(n, text) {
+    var p = document.createElement("div");
+    p.className = "sp-step";
+    var num = document.createElement("span");
+    num.className = "sp-step-n";
+    num.textContent = n;
+    var tx = document.createElement("span");
+    tx.className = "sp-step-t";
+    tx.textContent = text || "";
+    p.appendChild(num);
+    p.appendChild(tx);
     return p;
   }
 
@@ -254,6 +273,20 @@
           continue;
         }
         used += h;
+        i++;
+        continue;
+      }
+
+      if (p.step) {
+        if (remaining < 36 && used > 0) {
+          page = newPage(true);
+          body = page.querySelector(".sp-body");
+          max = bodyMax(page);
+          used = 0;
+        }
+        el = makeStep(p.step, p.text);
+        body.appendChild(el);
+        used += measureH(el) + 6;
         i++;
         continue;
       }

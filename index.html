@@ -769,6 +769,110 @@
       background: linear-gradient(180deg, #3aa06a 0%, #1e7a4a 100%);
       box-shadow: 0 8px 18px rgba(30, 122, 74, 0.22);
     }
+    .stress-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    @media (max-width: 700px) {
+      .stress-grid { grid-template-columns: 1fr; }
+    }
+    .stress-panel {
+      background: linear-gradient(180deg, #E7F4FC 0%, #F7FBFE 100%);
+      border: 1px solid var(--sky-300);
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+    }
+    .stress-panel.wide { grid-column: 1 / -1; }
+    .stress-panel h3 {
+      margin: 0 0 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--blue-deep);
+      letter-spacing: 0.08em;
+    }
+    .stress-kv {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+    .stress-kv th, .stress-kv td {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    .stress-kv tr:last-child th, .stress-kv tr:last-child td { border-bottom: 0; }
+    .stress-kv th {
+      text-align: left;
+      font-weight: 500;
+      color: var(--muted);
+      padding-right: 12px;
+      width: 52%;
+    }
+    .stress-kv td {
+      text-align: right;
+      font-weight: 700;
+      color: var(--blue-deep);
+      font-variant-numeric: tabular-nums;
+      font-family: "Noto Serif TC", "Noto Sans TC", serif;
+    }
+    .stress-kv tr.hl th, .stress-kv tr.hl td {
+      color: var(--blue-dark);
+      font-weight: 700;
+    }
+    .stress-verdict {
+      margin: 14px 0 0;
+      padding: 14px 16px;
+      border-radius: 14px;
+      line-height: 1.65;
+      font-size: 0.95rem;
+    }
+    .stress-verdict .tag {
+      display: inline-block;
+      font-family: "Noto Serif TC", "Noto Sans TC", serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      margin-right: 8px;
+    }
+    .stress-verdict.ok {
+      background: #E5F6EE;
+      border: 2px solid #146C45;
+      color: #146C45;
+    }
+    .stress-verdict.warn {
+      background: #FFF4E6;
+      border: 2px solid #E8590C;
+      color: #9C3D0E;
+    }
+    .script-step {
+      margin: 0;
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 1.02rem;
+      line-height: 1.6;
+      background: var(--sky-100);
+      color: var(--blue-deep);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .script-step .step-n {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      margin-top: 1px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .script-step .step-t { flex: 1; }
   </style>
 </head>
 <body>
@@ -1041,6 +1145,52 @@
         </table>
         <p class="sum-close" id="sum-close" style="display:none">房產活化，幫你創造<span class="sum-x" id="sum-close-x">約 — 萬</span>靈活資金</p>
         <p class="note">配息率非保證。</p>
+      </section>
+
+      <section class="card" id="stress-card">
+        <h2 class="section-title">利率／配息壓力測試</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="stress-rate-bump">利率漲幅（％，預設 1，可填負值）</label>
+            <input id="stress-rate-bump" type="number" inputmode="decimal" step="any" value="1">
+          </div>
+          <div class="field">
+            <label for="stress-div-rate">壓力配息率（％，預設 5）</label>
+            <input id="stress-div-rate" type="number" inputmode="decimal" min="0" step="any" value="5">
+          </div>
+        </div>
+        <p id="stress-empty" class="placeholder hidden">請先完成上方房產價值與配息試算，並輸入利率漲幅與壓力配息率。</p>
+        <div id="stress-results">
+          <div class="stress-grid">
+            <div class="stress-panel">
+              <h3>利率壓力</h3>
+              <table class="stress-kv">
+                <tr><th>新利率</th><td id="st-new-rate">—</td></tr>
+                <tr><th>新利率下月付</th><td id="st-new-pay">—</td></tr>
+                <tr><th>比原本多繳／月</th><td id="st-rate-extra">—</td></tr>
+              </table>
+            </div>
+            <div class="stress-panel">
+              <h3>配息壓力（打平配置）</h3>
+              <table class="stress-kv">
+                <tr><th>壓力配息率下每月配息</th><td id="st-stress-div">—</td></tr>
+                <tr><th>相對月付缺口／月</th><td id="st-div-gap">—</td></tr>
+              </table>
+            </div>
+            <div class="stress-panel wide">
+              <h3>缺口由「可靈活運用資金（護城河）」補多少</h3>
+              <table class="stress-kv">
+                <tr><th>護城河本金</th><td id="st-moat">—</td></tr>
+                <tr><th>僅利率上漲：每月缺口／可撐多久（本金直接扣，不假設配息）</th><td id="st-run-rate">—</td></tr>
+                <tr><th>僅配息下降：每月缺口／可撐多久（本金直接扣，不假設配息）</th><td id="st-run-div">—</td></tr>
+                <tr class="hl"><th>兩者同時（最壞情境）：每月缺口／可撐多久</th><td id="st-run-worst">—</td></tr>
+                <tr><th>若護城河也用壓力配息率配置，每月配息</th><td id="st-moat-div">—</td></tr>
+              </table>
+            </div>
+          </div>
+          <p class="stress-verdict ok" id="stress-verdict"><span class="tag">安全</span><span id="stress-verdict-text"></span></p>
+        </div>
+        <p class="note">配息不保證，可能來自本金；未計淨值與匯率波動；僅供試算。</p>
       </section>
 
       <section class="card" id="yearly-card">
@@ -1463,6 +1613,9 @@
     function scriptLinesToHtml(parts) {
       return parts.map(function (p) {
         if (p.sec) return '<p class="script-sec">' + p.sec + "</p>";
+        if (p.step) {
+          return '<p class="script-step"><span class="step-n">' + p.step + "</span><span class=\"step-t\">" + p.text + "</span></p>";
+        }
         const cls = p.who === "業務" ? "biz" : "cli";
         return '<p class="script-line ' + cls + '"><span class="who">' + p.who + "</span>" + p.text + "</p>";
       }).join("");
@@ -1471,11 +1624,220 @@
     function scriptLinesToText(parts) {
       return parts.map(function (p) {
         if (p.sec) return p.sec;
+        if (p.step) return p.step + "  " + p.text;
         return p.who + "：" + p.text;
       }).join("\n\n");
     }
 
+    function fmtBumpPct(v) {
+      const n = parseFloat(Number(v).toFixed(4));
+      if (n > 0) return "+" + n + "%";
+      return n + "%";
+    }
+
+    function fmtRunway(monthsFloat) {
+      if (!isFinite(monthsFloat) || monthsFloat === Infinity) return "不必動用本金";
+      if (monthsFloat <= 0) return "無法支應";
+      if (monthsFloat < 0.5) return "不足 1 個月";
+      const months = Math.round(monthsFloat);
+      if (months < 12) return months + " 個月";
+      const y = Math.floor(months / 12);
+      const m = months % 12;
+      if (m === 0) return y + " 年（" + months + " 個月）";
+      return y + " 年 " + m + " 個月（共 " + months + " 個月）";
+    }
+
+    function fmtGapRun(gap, moatYuan) {
+      if (gap <= 0) return "無缺口";
+      if (!(moatYuan > 0)) return fmt(gap) + "／無法支應";
+      return fmt(gap) + "／約可撐 " + fmtRunway(moatYuan / gap);
+    }
+
+    function computeStress() {
+      const loanWan = parseFloat(document.getElementById("amount").value);
+      const annualPct = parseFloat(document.getElementById("rate").value);
+      const years = parseInt(document.getElementById("years").value, 10);
+      const divRatePct = parseFloat(document.getElementById("div-rate").value);
+      const bumpEl = document.getElementById("stress-rate-bump");
+      const sdivEl = document.getElementById("stress-div-rate");
+      const bump = bumpEl ? parseFloat(bumpEl.value) : NaN;
+      const stressDivPct = sdivEl ? parseFloat(sdivEl.value) : NaN;
+      const loanOk = loanWan > 0 && isFinite(loanWan);
+      const rateOk = isFinite(annualPct) && annualPct >= 0;
+      const yearsOk = years === 20 || years === 30;
+      const divOk = isFinite(divRatePct) && divRatePct > 0;
+      const bumpOk = isFinite(bump);
+      const sdivOk = isFinite(stressDivPct) && stressDivPct >= 0;
+      if (!loanOk || !rateOk || !yearsOk || !divOk || !bumpOk || !sdivOk) return null;
+
+      const loanYuan = loanWan * 10000;
+      const payRaw = monthlyPayment(loanYuan, annualPct, years);
+      if (!isFinite(payRaw)) return null;
+      const pay = Math.round(payRaw);
+      const needYuan = (pay * 12) / (divRatePct / 100);
+      const insufficient = needYuan > loanYuan + 1e-9;
+      const leftoverWan = insufficient ? 0 : (loanYuan - needYuan) / 10000;
+      const moatYuan = Math.max(0, leftoverWan * 10000);
+
+      const newRateRaw = annualPct + bump;
+      const newRatePct = newRateRaw < 0 ? 0 : newRateRaw;
+      const newPay = Math.round(monthlyPayment(loanYuan, newRatePct, years));
+      const rateExtra = newPay - pay;
+      const stressDiv = Math.round(needYuan * (stressDivPct / 100) / 12);
+      const divGap = pay - stressDiv;
+      const worstGap = newPay - stressDiv;
+      const moatDiv = Math.round(moatYuan * (stressDivPct / 100) / 12);
+
+      function absorbed(gap) { return gap <= 0 || moatDiv >= gap; }
+      const rateAbs = absorbed(rateExtra);
+      const divAbs = absorbed(divGap);
+      const worstAbsDiv = absorbed(worstGap);
+      const safe = rateAbs && divAbs;
+      const worstMonths = worstGap <= 0 ? Infinity : (moatYuan > 0 ? moatYuan / worstGap : 0);
+      const rateMonths = rateExtra <= 0 ? Infinity : (moatYuan > 0 ? moatYuan / rateExtra : 0);
+      const divMonths = divGap <= 0 ? Infinity : (moatYuan > 0 ? moatYuan / divGap : 0);
+
+      return {
+        bump: bump,
+        stressDivPct: stressDivPct,
+        rateS: fmtRatePct(annualPct),
+        newRateS: fmtRatePct(newRatePct) + (newRateRaw < 0 ? "（已以 0% 計）" : ""),
+        newRatePlain: fmtRatePct(newRatePct),
+        bumpS: fmtBumpPct(bump),
+        pay: pay,
+        payS: fmt(pay),
+        newPay: newPay,
+        newPayS: fmt(newPay),
+        rateExtra: rateExtra,
+        rateExtraS: fmt(Math.abs(rateExtra)),
+        stressDiv: stressDiv,
+        stressDivS: fmt(stressDiv),
+        divGap: divGap,
+        divGapS: fmt(Math.abs(divGap)),
+        worstGap: worstGap,
+        worstGapS: fmt(Math.abs(worstGap)),
+        leftoverWan: leftoverWan,
+        moatS: leftoverWan > 0 ? fmtWan(leftoverWan) : "約 0.0 萬",
+        moatYuan: moatYuan,
+        moatDiv: moatDiv,
+        moatDivS: fmt(moatDiv),
+        needYuan: needYuan,
+        rateAbs: rateAbs,
+        divAbs: divAbs,
+        worstAbsDiv: worstAbsDiv,
+        safe: safe,
+        rateMonths: rateMonths,
+        divMonths: divMonths,
+        worstMonths: worstMonths,
+        rateRunS: fmtGapRun(rateExtra, moatYuan),
+        divRunS: fmtGapRun(divGap, moatYuan),
+        worstRunS: fmtGapRun(worstGap, moatYuan),
+        rateRunShort: rateExtra <= 0 ? "無缺口" : ("約可撐 " + fmtRunway(rateMonths)),
+        divRunShort: divGap <= 0 ? "無缺口" : ("約可撐 " + fmtRunway(divMonths)),
+        worstRunShort: worstGap <= 0 ? "無缺口" : ("約可撐 " + fmtRunway(worstMonths)),
+        insufficient: insufficient
+      };
+    }
+
+    function renderStress(st) {
+      const empty = document.getElementById("stress-empty");
+      const results = document.getElementById("stress-results");
+      const verdict = document.getElementById("stress-verdict");
+      const vtext = document.getElementById("stress-verdict-text");
+      if (!results) return;
+      if (!st) {
+        if (empty) empty.classList.remove("hidden");
+        results.classList.add("hidden");
+        return;
+      }
+      if (empty) empty.classList.add("hidden");
+      results.classList.remove("hidden");
+      setText("st-new-rate", st.rateS + " → " + st.newRateS + "（漲幅 " + st.bumpS + "）");
+      setText("st-new-pay", st.newPayS);
+      if (st.rateExtra > 0) setText("st-rate-extra", "多繳 " + st.rateExtraS);
+      else if (st.rateExtra < 0) setText("st-rate-extra", "少繳 " + st.rateExtraS);
+      else setText("st-rate-extra", "與原本相同");
+      setText("st-stress-div", st.stressDivS);
+      if (st.divGap > 0) setText("st-div-gap", "缺口 " + st.divGapS);
+      else if (st.divGap < 0) setText("st-div-gap", "尚餘 " + st.divGapS);
+      else setText("st-div-gap", "剛好打平");
+      setText("st-moat", st.moatS);
+      setText("st-run-rate", st.rateRunS);
+      setText("st-run-div", st.divRunS);
+      setText("st-run-worst", st.worstRunS);
+      setText("st-moat-div", st.moatDivS);
+      if (verdict) {
+        verdict.classList.toggle("ok", st.safe);
+        verdict.classList.toggle("warn", !st.safe);
+        const tag = verdict.querySelector(".tag");
+        if (tag) tag.textContent = st.safe ? "安全" : "需留意";
+      }
+      if (vtext) {
+        if (st.safe) {
+          var msg = "利率上漲或多繳的月付、以及配息降到 " + fmtRatePct(st.stressDivPct) + " 的單向缺口，都能由護城河以壓力配息率配置後的每月配息（" + st.moatDivS + "）吸收。";
+          if (st.worstGap > 0 && !st.worstAbsDiv) {
+            msg += "兩者同時發生的最壞情境，需動用護城河本金，" + st.worstRunShort + "。";
+          } else if (st.worstGap <= 0) {
+            msg += "兩者同時發生時也沒有缺口。";
+          } else {
+            msg += "兩者同時發生時，護城河配息仍蓋得住最壞缺口。";
+          }
+          vtext.textContent = msg;
+        } else {
+          vtext.textContent = "以目前的護城河與壓力配息率 " + fmtRatePct(st.stressDivPct) + "，利率上漲或配息下降的缺口無法單靠護城河每月配息（" + st.moatDivS + "）完全吸收。最壞情境每月缺口 " + (st.worstGap > 0 ? st.worstGapS : "無") + "，本金" + (st.worstGap > 0 ? st.worstRunShort : "不必動用") + "。建議調低貸款，或拉高打平所需配置，並每年檢視調整。";
+        }
+      }
+    }
+
+    function appendObjectionScript(parts, st, loan, need, left, payS) {
+      if (!st) return;
+      function sec(s) { parts.push({ sec: s }); }
+      function biz(s) { parts.push({ who: "業務", text: s }); }
+      function cli(s) { parts.push({ who: "客戶", text: s }); }
+
+      sec("客戶反對問題話術");
+      cli("這樣有什麼風險嗎？");
+      biz("有，任何投資都有風險，我不會跟你說沒有。主要是三個：房貸利率會變、配息不保證、基金淨值和匯率會波動。但你看這個架構，我們不是把" + loan + "全部拿去追高報酬。只拿" + need + "去配置，配息剛好打平每月 " + payS + "的房貸，另外" + left + "留著當安全護城河，還有 FPE 壽險先把家庭責任顧好。所以就算市場不好，房貸還是有錢繳，家人也有保障。我們是先把最壞的情況想好，才開始做規劃。");
+
+      cli("利息不會波動嗎？");
+      if (st.rateExtra > 0) {
+        var rateTalk = "會，房貸是機動利率，我們直接算給你看。假設利率從 " + st.rateS + " 漲到 " + st.newRatePlain + "，月付會從 " + st.payS + "變成大約 " + st.newPayS + "，一個月多 " + st.rateExtraS + "左右。這筆錢從哪來？你留下來的" + st.moatS + "護城河，就算只拿來放配息，一個月也有 " + st.moatDivS;
+        if (st.rateAbs) {
+          rateTalk += "，多繳的部分吸收得了。";
+        } else {
+          rateTalk += "，還補不滿多繳的 " + st.rateExtraS + "。這種情況我們會建議調低貸款，或把打平所需的配置再拉高一些，讓結構更穩。";
+        }
+        rateTalk += "而且利率會漲，通常是景氣熱、通膨高的時候，那時候房價和資產通常也跟著漲。我們每年會一起檢視一次：利率漲了，就把護城河多撥一點去打平；利率降了，你就多出可以運用的錢。";
+        biz(rateTalk);
+      } else if (st.rateExtra < 0) {
+        biz("會，房貸是機動利率，我們直接算給你看。若利率從 " + st.rateS + " 降到 " + st.newRatePlain + "，月付會從 " + st.payS + "變成大約 " + st.newPayS + "，一個月少繳 " + st.rateExtraS + "左右，負擔會比較輕。我們每年還是會一起檢視一次：利率漲了，就把護城河多撥一點去打平；利率降了，你就多出可以運用的錢。");
+      } else {
+        biz("會，房貸是機動利率。依目前設定，新利率下的月付與原本相同。我們每年還是會一起檢視一次：利率漲了，就把護城河多撥一點去打平；利率降了，你就多出可以運用的錢。");
+      }
+
+      cli("配息如果變少怎麼辦？");
+      var divTalk = "配息不保證，也可能來自本金，這點我必須先說清楚。我們用壓力配息率 " + fmtRatePct(st.stressDivPct) + " 來試算：原本用來打平房貸的" + need + "，每月配息會從大約 " + payS + "變成 " + st.stressDivS;
+      if (st.divGap > 0) {
+        divTalk += "，一個月缺口約 " + st.divGapS + "。你留下來的" + st.moatS + "護城河，本金直接拿來補、先不假設配息，" + st.divRunShort + "；若護城河也用 " + fmtRatePct(st.stressDivPct) + " 配置，一個月還有 " + st.moatDivS + "的配息，";
+        divTalk += st.divAbs ? "這個缺口吸收得了。" : "還補不滿這個缺口，這種情況我們會建議調低貸款，或把打平配置再拉高一些。";
+      } else if (st.divGap < 0) {
+        divTalk += "，仍然蓋得住原本 " + payS + "的月付，沒有缺口。";
+      } else {
+        divTalk += "，仍剛好打平月付。";
+      }
+      divTalk += "所以我們每年會一起檢視一次，配息變少就調整標的或把護城河多撥一點去打平，讓房貸繳款不斷。";
+      biz(divTalk);
+
+      sec("處理反對問題五步驟");
+      parts.push({ step: "1", text: "先認同：風險是真的，我們不迴避，也不說沒有風險。" });
+      parts.push({ step: "2", text: "算成數字：利率、配息一變，月付和缺口是多少，直接試算給客戶看。" });
+      parts.push({ step: "3", text: "指出架構已有因應：打平配置、護城河、FPE，最壞情況先想好。" });
+      parts.push({ step: "4", text: "主導權交給客戶（每年檢視）：利率漲了或配息變少，一起調整，決定權在客戶。" });
+      parts.push({ step: "5", text: "拉回目標：做這件事是為了讓房子替他工作，家庭有保障、現金流更穩。" });
+    }
+
     function updateScript() {
+
       const body = document.getElementById("script-body");
       const empty = document.getElementById("script-empty");
       const hint = document.getElementById("script-computed");
@@ -1514,6 +1876,7 @@
         setText("fpe-info", "FPE 商品資訊：—");
         setText("fpe-fx-note", fmtFpeFx());
         renderYearlyTable(null);
+        renderStress(null);
         return;
       }
       if (empty) empty.classList.add("hidden");
@@ -1697,6 +2060,10 @@
         biz("……所以如果是你的房子，你願不願意做這件事？");
       }
 
+      const stress = computeStress();
+      appendObjectionScript(parts, stress, loan, need, left, payS);
+      renderStress(stress);
+
       body.innerHTML = scriptLinesToHtml(parts);
       lastScriptText = scriptLinesToText(parts);
       lastScriptParts = parts;
@@ -1712,6 +2079,16 @@
         { label: "多出配息／月", value: cashMonth },
         { label: "65歲每月配息", value: isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan)) : "—" }
       ];
+      if (stress) {
+        lastScriptCards = lastScriptCards.concat([
+          { label: "壓力新月付", value: stress.newPayS },
+          { label: "比原本多繳／月", value: stress.rateExtra > 0 ? ("多繳 " + stress.rateExtraS) : (stress.rateExtra < 0 ? ("少繳 " + stress.rateExtraS) : "相同") },
+          { label: "壓力配息缺口／月", value: stress.divGap > 0 ? stress.divGapS : (stress.divGap < 0 ? ("尚餘 " + stress.divGapS) : "無缺口") },
+          { label: "最壞缺口／月", value: stress.worstGap > 0 ? stress.worstGapS : "無缺口" },
+          { label: "最壞護城河可撐", value: stress.worstRunShort },
+          { label: "壓力測試結論", value: stress.safe ? "安全" : "需留意", tone: stress.safe ? "ok" : "warn" }
+        ]);
+      }
     }
 
     function recalcPropertyValue() {
@@ -2014,7 +2391,7 @@
       targetFollowsLoan = true;
       updateScript();
     });
-    ["client-age", "client-gender", "script-ratio"].forEach(function (id) {
+    ["client-age", "client-gender", "script-ratio", "stress-rate-bump", "stress-div-rate"].forEach(function (id) {
       const el = document.getElementById(id);
       el.addEventListener("input", updateScript);
       el.addEventListener("change", updateScript);
@@ -2058,7 +2435,7 @@
         fileStem: "房產活化話術",
         parts: lastScriptParts,
         cards: lastScriptCards,
-        disclaimer: "利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。FPE 倍數與解約金依中分紅假設，紅利非保證。"
+        disclaimer: "利率、配息率與壓力測試皆為試算假設數字，非任何商品之保證報酬；配息不保證且可能來自本金，未計淨值與匯率波動。實際貸款成數與利率依銀行核貸結果。FPE 倍數與解約金依中分紅假設，紅利非保證。"
       }, this);
     });
 
