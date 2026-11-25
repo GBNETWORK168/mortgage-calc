@@ -765,6 +765,9 @@
       filter: none;
       transform: none;
     }
+    .btn-present {
+      background: linear-gradient(180deg, #2B86C4 0%, #0E4E7A 100%);
+    }
     .btn-copy.copied {
       background: linear-gradient(180deg, #3aa06a 0%, #1e7a4a 100%);
       box-shadow: 0 8px 18px rgba(30, 122, 74, 0.22);
@@ -1213,6 +1216,7 @@
         <div class="copy-row">
           <button type="button" class="btn btn-copy" id="copy-script">複製話術</button>
           <button type="button" class="btn btn-copy" id="download-script-pdf">下載話術 PDF</button>
+          <button type="button" class="btn btn-copy btn-present" id="open-present" title="開啟給客戶看的全螢幕互動畫面，帶入目前試算數字">互動版畫面</button>
         </div>
         <p class="fpe-info" id="fpe-info">FPE 商品資訊：—</p>
         <p class="note" id="script-note">利率、配息率皆為試算假設數字，非任何商品之保證報酬；實際貸款成數與利率依銀行核貸結果。FPE 兩年總繳保費＝目標壽險保障 × 保額與壽險比例（內建 100%）÷ 第 6 年壽險倍數，從可靈活運用資金扣兩年總繳全額。基本保額依臺灣銀行牌告即期賣出匯率 <span id="fpe-fx-note"></span>，由兩年總繳反算為美元保額。倍數來源：FPE 快速報價，兩年期、金融機構轉帳、中分紅、第 6 保單年度身故保障 ÷ 兩年總繳，依目標保障換算的保額自動計算；紅利非保證。</p>
@@ -1225,6 +1229,7 @@
   </div>
 
   <script src="script-pdf.js"></script>
+  <link rel="stylesheet" href="present.css">
   <script>
     const AUTH_KEY = "mc_auth";
     const CRED_HASH = "e3467ad11993520bc0b7fa9418d6d45e5d4baca97aad29f5743e914867d54351";
@@ -1404,6 +1409,7 @@
       if (!body) return;
       if (!o) {
         body.innerHTML = ""; if (meta) meta.textContent = "";
+        window.MC_YEARLY = null;
         if (empty) empty.classList.remove("hidden"); if (wrap) wrap.classList.add("hidden");
         return;
       }
@@ -1424,14 +1430,17 @@
       }
       const P = o.loanWan * 10000;
       let html = "";
+      const yrRows = [];
       for (let t = 1; t <= o.years; t++) {
         const bal = mortgageBalanceAfterMonths(P, o.annualPct, o.years, t * 12);
         const usd = hasCv ? fpeCvUsd(o.age, o.gender, S, t) : null;
         const twd = usd != null ? Math.round(usd * FPE_FX) : null;
+        yrRows.push({ t: t, age: o.age + t - 1, bal: bal, twd: twd });
         html += "<tr><td class=\"c\">" + t + "</td><td class=\"c\">" + (o.age + t - 1) + "</td><td>" + fmt(bal) + "</td><td>" +
           (twd != null ? fmt(twd) : "—") + "</td><td class=\"usd\">" + (usd != null ? "US$ " + usd.toLocaleString("en-US") : "—") + "</td></tr>";
       }
       body.innerHTML = html;
+      window.MC_YEARLY = { S: S, hasCv: hasCv, rows: yrRows };
     }
     function fmtWanUsd(S) {
       const r = Math.round(S * 10) / 10;
@@ -1877,6 +1886,8 @@
         setText("fpe-fx-note", fmtFpeFx());
         renderYearlyTable(null);
         renderStress(null);
+        window.MC_MODEL = null;
+        if (typeof window.McPresentRefresh === "function") window.McPresentRefresh();
         return;
       }
       if (empty) empty.classList.add("hidden");
@@ -2061,10 +2072,24 @@
       }
 
       const stress = computeStress();
+      // 互動版畫面（present.js）直接讀這組數字，確保與主頁一致
+      const divPrinWanM = parseFloat(document.getElementById("div-principal").value);
+      window.MC_MODEL = {
+        loanWan: loanWan, annualPct: annualPct, years: years, divRatePct: divRatePct,
+        pay: pay, payRound: Math.round(pay), yearYuan: yearYuan, needWan: needWan, insufficient: insufficient,
+        leftoverWan: leftoverWan, propWan: propWan, age: age, gender: gender,
+        baseTargetWan: baseTargetWan, targetWan: targetWan, ratioPct: ratioPct,
+        ageInRange: ageInRange, mult: mult, protectWan: protectWan, neededProtectWan: neededProtectWan,
+        fpeCapped: fpeCapped, fpeAtMax: fpeAtMax, coverWan: showCoverWan, actualCoverWan: actualCoverWan,
+        cashWan: cashWan, cashYearYuan: cashYearYuan, cashMonthYuan: cashMonthYuan, monthAt65Yuan: monthAt65Yuan,
+        divPrinWan: (isFinite(divPrinWanM) && divPrinWanM > 0) ? divPrinWanM : 0,
+        stress: stress, fx: FPE_FX
+      };
       appendObjectionScript(parts, stress, loan, need, left, payS);
       renderStress(stress);
 
       body.innerHTML = scriptLinesToHtml(parts);
+      if (typeof window.McPresentRefresh === "function") window.McPresentRefresh();
       lastScriptText = scriptLinesToText(parts);
       lastScriptParts = parts;
       lastScriptMeta = { age: age };
@@ -2510,5 +2535,6 @@
     loadMarketData();
     loadFpeCv();
   </script>
+  <script src="present.js"></script>
 </body>
 </html>
