@@ -214,6 +214,24 @@
       padding-bottom: 8px;
       border-bottom: 1px solid var(--line);
     }
+    .dti-box { margin-top: 12px; border-radius: 14px; padding: 14px 16px; border: 1px solid var(--sky-300); background: #F7FBFE; text-align: left; }
+    .dti-box.g { background: #E5F6EE; border-color: #BFE6D2; }
+    .dti-box.y { background: #FFF6DD; border-color: #F0D98C; }
+    .dti-box.r { background: #FDECEC; border-color: #F5C9C9; }
+    .dti-head { display: flex; align-items: center; gap: 10px; margin: 0; }
+    .dti-title { font-weight: 700; color: var(--blue-deep); letter-spacing: 0.08em; }
+    .dti-light { width: 16px; height: 16px; border-radius: 50%; background: #C9D7E4; flex: 0 0 auto; }
+    .dti-box.g .dti-light { background: #1E9E5A; box-shadow: 0 0 0 4px rgba(30,158,90,.18); }
+    .dti-box.y .dti-light { background: #E3A72F; box-shadow: 0 0 0 4px rgba(227,167,47,.2); }
+    .dti-box.r .dti-light { background: #D23B2E; box-shadow: 0 0 0 4px rgba(210,59,46,.18); }
+    .dti-pct { margin-left: auto; font-family: "Noto Serif TC", "Noto Sans TC", serif; font-size: 1.7rem; font-weight: 700; color: var(--blue-deep); }
+    .dti-box.g .dti-pct { color: #146C45; } .dti-box.y .dti-pct { color: #8A5A00; } .dti-box.r .dti-pct { color: #9B2C2C; }
+    .dti-label { margin: 4px 0 0; font-weight: 700; color: var(--text); }
+    .dti-box:not(.g):not(.y):not(.r) .dti-label { font-weight: 500; color: var(--muted); }
+    .dti-formula { margin: 4px 0 0; font-size: 0.86rem; color: var(--muted); }
+    .dti-formula:empty, .dti-need:empty { display: none; }
+    .dti-need { margin: 6px 0 0; padding-left: 1.2em; font-size: 0.92rem; color: var(--text); }
+    .dti-note { margin: 8px 0 0; font-size: 0.78rem; color: var(--muted); }
     .result-card {
       margin-top: 18px;
       background: linear-gradient(180deg, #E7F4FC 0%, #F7FBFE 100%);
@@ -951,11 +969,29 @@
           </div>
         </div>
 
+        <div class="field-row">
+          <div class="field">
+            <label for="monthly-income">每月收入（元）</label>
+            <input id="monthly-income" type="number" inputmode="numeric" min="0" step="any" placeholder="例如 80000" value="">
+          </div>
+          <div class="field">
+            <label for="other-debt">其他貸款月付（元）</label>
+            <input id="other-debt" type="number" inputmode="numeric" min="0" step="any" placeholder="例如 0" value="0">
+          </div>
+        </div>
+
         <div id="results">
           <div class="result-card">
             <p class="result-label">本息平均攤還每月還款金額</p>
             <p class="result-amount" id="monthly">—</p>
             <p class="result-hint" id="periods"></p>
+          </div>
+          <div class="dti-box" id="dti-box">
+            <p class="dti-head"><span class="dti-title">負債比</span><span class="dti-light" id="dti-light" aria-hidden="true"></span><span class="dti-pct" id="dti-pct">—</span></p>
+            <p class="dti-label" id="dti-label">輸入每月收入，即可帶出負債比燈號。</p>
+            <p class="dti-formula" id="dti-formula"></p>
+            <ul class="dti-need" id="dti-need"></ul>
+            <p class="dti-note">負債比＝（本案房貸月付＋其他貸款月付）÷ 每月收入。≤33% 綠燈、33–50% 黃燈、&gt;50% 紅燈；以上為業界常見判斷範圍，非法規固定標準，實際以銀行審核為準。</p>
           </div>
 
           <h2 class="section-title" style="margin-top:22px">20 年與 30 年比較</h2>
@@ -1512,6 +1548,49 @@
       const el = document.getElementById(id);
       if (el) el.textContent = text;
     }
+    // 負債比：（本案房貸月付＋其他貸款月付）÷ 每月收入；業界常見判斷範圍，非法規固定標準
+    function computeDti() {
+      const loanWan = parseFloat(document.getElementById("amount").value);
+      const annualPct = parseFloat(document.getElementById("rate").value);
+      const years = parseInt(document.getElementById("years").value, 10);
+      const incEl = document.getElementById("monthly-income");
+      const othEl = document.getElementById("other-debt");
+      const income = incEl ? parseFloat(incEl.value) : NaN;
+      let other = othEl ? parseFloat(othEl.value) : 0;
+      if (!isFinite(other) || other < 0) other = 0;
+      if (!(loanWan > 0) || !isFinite(annualPct) || annualPct < 0 || !(years === 20 || years === 30)) return { ok: false, reason: "loan" };
+      const pay = Math.round(monthlyPayment(loanWan * 10000, annualPct, years));
+      const debt = pay + Math.round(other);
+      const need33 = Math.ceil(debt * 3 / 100) * 100;
+      const need50 = Math.ceil(debt * 2 / 100) * 100;
+      if (!(income > 0) || !isFinite(income)) return { ok: false, reason: "income", pay: pay, other: Math.round(other), debt: debt, need33: need33, need50: need50 };
+      const pct1 = Math.round(debt / income * 1000) / 10;
+      const level = pct1 <= 33 ? "g" : (pct1 <= 50 ? "y" : "r");
+      const label = level === "g" ? "銀行通常好過件" : (level === "y" ? "多數銀行可接受，需看工作與信用" : "容易被砍成數或拉高利率");
+      const light = level === "g" ? "綠燈" : (level === "y" ? "黃燈" : "紅燈");
+      return { ok: true, income: Math.round(income), pay: pay, other: Math.round(other), debt: debt, pct1: pct1, pctS: pct1.toFixed(1) + "%", level: level, label: label, light: light, need33: need33, need50: need50 };
+    }
+    function renderDti() {
+      const box = document.getElementById("dti-box");
+      if (!box) return null;
+      const d = computeDti();
+      box.classList.remove("g", "y", "r");
+      const need = document.getElementById("dti-need");
+      if (!d.ok) {
+        setText("dti-pct", "—");
+        setText("dti-label", d.reason === "income" ? "輸入每月收入，即可帶出負債比燈號。" : "請先輸入房貸金額與利率。");
+        setText("dti-formula", "");
+        if (need) need.innerHTML = d.reason === "income"
+          ? "<li>要落在 1/3 內，月收入至少約 " + fmt(d.need33) + "</li><li>50% 內，月收入至少約 " + fmt(d.need50) + "</li>" : "";
+        return d;
+      }
+      box.classList.add(d.level);
+      setText("dti-pct", d.pctS);
+      setText("dti-label", d.light + "：" + d.label);
+      setText("dti-formula", "（本案月付 " + fmt(d.pay) + (d.other > 0 ? "＋其他貸款 " + fmt(d.other) : "") + "）÷ 月收入 " + fmt(d.income));
+      if (need) need.innerHTML = "<li>要落在 1/3 內，月收入至少約 " + fmt(d.need33) + "</li><li>50% 內，月收入至少約 " + fmt(d.need50) + "</li>";
+      return d;
+    }
     function updateSummary() {
       const loanWan = parseFloat(document.getElementById("amount").value);
       const annualPct = parseFloat(document.getElementById("rate").value);
@@ -1846,6 +1925,7 @@
     }
 
     function updateScript() {
+      const dtiNow = renderDti();
 
       const body = document.getElementById("script-body");
       const empty = document.getElementById("script-empty");
@@ -2035,6 +2115,9 @@
       sec("方案一：" + loan + "配置與安全護城河");
       biz(age + " 歲，貸款 " + loan + "、" + years + " 年，利率假設 " + rateS + "，本利攤還，一個月要還多少？我們先不談寬限期，避免太複雜。你幫我看一下。");
       cli(payS + "。");
+      if (dtiNow && dtiNow.ok) {
+        biz("先看一下負債比：月付 " + payS + (dtiNow.other > 0 ? "加其他貸款 " + fmt(dtiNow.other) : "") + "，除以你每月收入 " + fmt(dtiNow.income) + "，大約 " + dtiNow.pctS + "，是" + dtiNow.light + "，" + dtiNow.label + "（業界常見判斷，實際以銀行審核為準）。");
+      }
       biz("好，12 個月大概多少？");
       cli(yearS + "，" + yearWan + "。");
       biz("好。原本我們沒有任何房貸，現在有房貸，我們一定要透過理財配置幫我們去付這筆錢，不要出到自己的錢。如果我去找一個 " + divS + " 投資報酬率的東西來幫我付，" + yearWan + "除以 " + divS + "，本金大概要多少？");
@@ -2083,7 +2166,7 @@
         fpeCapped: fpeCapped, fpeAtMax: fpeAtMax, coverWan: showCoverWan, actualCoverWan: actualCoverWan,
         cashWan: cashWan, cashYearYuan: cashYearYuan, cashMonthYuan: cashMonthYuan, monthAt65Yuan: monthAt65Yuan,
         divPrinWan: (isFinite(divPrinWanM) && divPrinWanM > 0) ? divPrinWanM : 0,
-        stress: stress, fx: FPE_FX
+        stress: stress, fx: FPE_FX, dti: dtiNow
       };
       appendObjectionScript(parts, stress, loan, need, left, payS);
       renderStress(stress);
@@ -2097,13 +2180,14 @@
         { label: "房產價值", value: prop },
         { label: "房貸金額", value: loan },
         { label: "每月還款", value: payS },
+      ].concat(dtiNow && dtiNow.ok ? [{ label: "負債比", value: dtiNow.pctS + "（" + dtiNow.light + "）", tone: dtiNow.level === "g" ? "ok" : "warn" }] : []).concat([
         { label: "打平所需配置", value: need },
         { label: "可靈活運用資金", value: left },
         { label: "FPE 兩年總繳", value: ageInRange ? prot : "—" },
         { label: "剩餘投入配息", value: fmtWanBare(cashWan) },
         { label: "多出配息／月", value: cashMonth },
         { label: "65歲每月配息", value: isFinite(monthAt65Yuan) ? ("約 " + fmt(monthAt65Yuan)) : "—" }
-      ];
+      ]);
       if (stress) {
         lastScriptCards = lastScriptCards.concat([
           { label: "壓力新月付", value: stress.newPayS },
@@ -2364,7 +2448,7 @@
       document.getElementById("div-principal").value = document.getElementById("amount").value;
     }
 
-    ["rate", "years", "div-rate"].forEach(function (id) {
+    ["rate", "years", "div-rate", "monthly-income", "other-debt"].forEach(function (id) {
       const el = document.getElementById(id);
       el.addEventListener("input", recalc);
       el.addEventListener("change", recalc);

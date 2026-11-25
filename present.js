@@ -34,6 +34,8 @@
     ratio: { id: "script-ratio", lab: "FPE 保額比例（目標保障 × %）", min: 10, max: 200, step: 5, f: function (v) { return String(parseFloat(Number(v).toFixed(2))) + "%"; } },
     age: { id: "client-age", lab: "客戶年紀", min: 18, max: 78, step: 1, f: function (v) { return Math.round(v) + " 歲"; } },
     bump: { id: "stress-rate-bump", lab: "假設利率漲幅", min: -1, max: 3, step: 0.25, f: function (v) { return fmtBumpPct(v); } },
+    income: { id: "monthly-income", lab: "每月收入", min: 20000, max: 300000, step: 1000, f: function (v) { return yuan(v); }, empty: "未填" },
+    other: { id: "other-debt", lab: "其他貸款月付", min: 0, max: 100000, step: 1000, f: function (v) { return yuan(v); } },
     sdiv: { id: "stress-div-rate", lab: "壓力配息率（配息下降到）", min: 0, max: 12, step: 0.5, f: function (v) { return pct(v); } }
   };
   function sliderHtml(key) {
@@ -137,7 +139,7 @@
 
   /* ---------- 頁面骨架 ---------- */
   var PAGES = [
-    { tab: "現況", sliders: '{amount}' },
+    { tab: "現況", sliders: '{amount}{income}{other}' },
     { tab: "配置", sliders: '{rate}{years}{divRate}{divPrin}' },
     { tab: "護城河", sliders: '{ratio}{age}{gender}' },
     { tab: "效益", sliders: '{divRate}{amount}' },
@@ -191,6 +193,21 @@
     }).join("");
   }
 
+  /* 負債比燈號卡（數字來自主頁 computeDti） */
+  function dtiCard(d) {
+    if (!d) return "";
+    var col = { g: ["#E5F6EE", "#1E9E5A", "#146C45"], y: ["#FFF6DD", "#E3A72F", "#8A5A00"], r: ["#FDECEC", "#D23B2E", "#9B2C2C"] }[d.ok ? d.level : ""] || ["#F4FAFD", "#C9D7E4", C.muted];
+    var needs = (d.need33 ? '<div class="pv-stats" style="margin-top:10px">' + stat("落在 1/3 內，月收入至少約", yuanShort(d.need33), "元") + stat("落在 50% 內，月收入至少約", yuanShort(d.need50), "元") + "</div>" : "");
+    var head = d.ok
+      ? '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span style="width:34px;height:34px;border-radius:50%;background:' + col[1] + ";box-shadow:0 0 0 7px " + col[1] + '33;flex:0 0 auto"></span>' +
+        '<span style="font-family:\'Noto Serif TC\',serif;font-size:clamp(2.2rem,5vw,3.2rem);font-weight:700;color:' + col[2] + ';line-height:1">' + esc(d.pctS) + "</span>" +
+        '<span style="font-size:clamp(1.1rem,2.4vw,1.4rem);font-weight:700;color:' + col[2] + '">' + esc(d.light + "：" + d.label) + "</span></div>" +
+        '<p class="cap" style="font-size:.98rem">（本案月付 ' + esc(yuan(d.pay)) + (d.other > 0 ? "＋其他貸款 " + esc(yuan(d.other)) : "") + "）÷ 月收入 " + esc(yuan(d.income)) + "</p>"
+      : '<p style="margin:0;font-size:1.15rem;color:' + C.muted + '">' + (d.reason === "income" ? "輸入每月收入，負債比燈號馬上出來。" : "請先輸入房貸金額與利率。") + "</p>";
+    return '<div class="pv-card" style="background:' + col[0] + '"><h3>負債比（本案月付＋其他貸款 ÷ 月收入）</h3>' + head + needs +
+      '<p class="cap">≤33% 綠燈、33–50% 黃燈、&gt;50% 紅燈；以上為業界常見判斷範圍，非法規固定標準，實際以銀行審核為準。</p></div>';
+  }
+
   /* ---------- 繪製 ---------- */
   function render() {
     if (root.hidden) return;
@@ -213,12 +230,12 @@
 
     /* 1 現況：開場與房產活化概念 */
     slot(0, "title").innerHTML = "房子增值到 <em>" + esc(propS) + "</em>，<br>你覺得有賺到錢嗎？";
-    slot(0, "ask").innerHTML = asks(["房子增值了，但沒賣掉，你覺得有賺到嗎？", "如果賣掉，你還有地方住嗎？", "能貸的金額大概是 8 成，是多少？"]);
+    slot(0, "ask").innerHTML = asks(["房子增值了，但沒賣掉，你覺得有賺到嗎？", "如果賣掉，你還有地方住嗎？", "能貸的金額大概是 8 成，是多少？"].concat(m.dti && m.dti.ok ? [] : ["你每月收入大概多少？我們先看負債比。"]));
     slot(0, "viz").innerHTML =
       '<div class="pv-card"><h3>你的房子（以可貸 8 成換算）</h3>' +
       hstack(m.propWan, [{ v: m.loanWan, c: C.blue, t: "可貸 8 成 " + loanS }, { v: m.propWan - m.loanWan, c: C.sky2, t: "2 成", tc: C.deep }], "房產價值 " + propS) +
       '<div class="pv-stats" style="margin-top:8px">' + stat("房產價值", wanNum(m.propWan), "萬") + stat("可貸金額（8 成）", wanNum(m.loanWan), "萬", "hl") + stat("房子還是你住", "居住權不變", "") + "</div>" +
-      '<p class="pv-big">不賣房子，也能讓 <em>' + esc(loanS) + "</em> 動起來</p></div>";
+      '<p class="pv-big">不賣房子，也能讓 <em>' + esc(loanS) + "</em> 動起來</p></div>" + dtiCard(m.dti);
     slot(0, "cue").innerHTML = cueHtml(secOpen && secOpen.parts);
 
     /* 2 配置：月付 → 打平所需本金 → 還剩多少 */
@@ -341,7 +358,7 @@
   /* ---------- 控制項同步 ---------- */
   function syncControls() {
     root.querySelectorAll("[data-sl]").forEach(function (box) {
-      var key = box.getAttribute("data-sl"), s = SL[key], inp = box.querySelector("input"), v = mainVal(s.id);
+      var key = box.getAttribute("data-sl"), s = SL[key], inp = box.querySelector("input"), v = mainVal(s.id), isEmpty = !isFinite(v) || (s.empty && !(v > 0));
       if (!isFinite(v)) v = s.min;
       var min = s.min, max = s.max;
       if (s.dynMax) { var loan = mainVal("amount"); max = Math.max(10, isFinite(loan) ? loan : s.max); }
@@ -349,7 +366,7 @@
       inp.min = min; inp.max = max; inp.step = s.step;
       if (dragging !== inp) inp.value = v;
       inp.style.setProperty("--p", ((v - min) / ((max - min) || 1) * 100).toFixed(2) + "%");
-      box.querySelector(".pv-sl-val").textContent = s.f(v);
+      box.querySelector(".pv-sl-val").textContent = isEmpty && s.empty ? s.empty : s.f(v);
     });
     root.querySelectorAll("[data-seg]").forEach(function (box) {
       var id = box.getAttribute("data-seg") === "years" ? "years" : "client-gender", v = mainEl(id).value;
