@@ -163,7 +163,7 @@
     PAGES.map(function (p, i) {
       return '<section class="pv-page" data-page="' + i + '"><p class="pv-step">STEP ' + (i + 1) + "・" + p.tab + '</p><h2 class="pv-title" data-slot="title"></h2>' +
         '<div class="pv-ask" data-slot="ask"></div><div class="pv-grid"><div data-slot="viz"></div>' + ctrlCard(expandSliders(p.sliders)) + "</div>" +
-        '<details class="pv-cue"><summary>業務提詞（客戶畫面可收起）</summary><div class="cue-b" data-slot="cue"></div></details></section>';
+        '<details class="pv-cue"><summary>業務提詞（客戶畫面可收起）</summary><div class="cue-tools"><label class="oral-switch" title="話術改用好念的整數與短句；畫面數字仍為精確數字"><input type="checkbox" data-pv-oral><span class="oral-track" aria-hidden="true"></span><span class="oral-text">口語版</span></label></div><div class="cue-b" data-slot="cue"></div></details></section>';
     }).join("") +
     '<p class="pv-disc">利率、配息率與壓力測試皆為試算假設，非任何商品之保證報酬；配息不保證且可能來自本金，未計淨值與匯率波動。FPE 倍數與解約金依中分紅假設，紅利非保證。實際貸款成數與利率依銀行核貸結果。</p></main>' +
     '<footer class="pv-foot"><button type="button" class="pv-btn ghost" id="pv-prev">‹ 上一步</button><div class="pv-dots" id="pv-dots">' +
@@ -177,7 +177,8 @@
   /* 主頁話術稿依段落切出來給提詞框用（與主頁同一份 lastScriptParts） */
   function scriptSections() {
     var out = {}, curSec = "";
-    (typeof lastScriptParts !== "undefined" ? lastScriptParts : []).forEach(function (p) {
+    var oral = window.McScriptOral && McScriptOral.isOn() && typeof lastScriptPartsOral !== "undefined" && lastScriptPartsOral.length;
+    (oral ? lastScriptPartsOral : (typeof lastScriptParts !== "undefined" ? lastScriptParts : [])).forEach(function (p) {
       if (p.sec) { curSec = p.sec; out[curSec] = out[curSec] || []; return; }
       (out[curSec] = out[curSec] || []).push(p);
     });
@@ -357,6 +358,8 @@
 
   /* ---------- 控制項同步 ---------- */
   function syncControls() {
+    var oralOn = !!(window.McScriptOral && McScriptOral.isOn());
+    root.querySelectorAll("[data-pv-oral]").forEach(function (el) { el.checked = oralOn; });
     root.querySelectorAll("[data-sl]").forEach(function (box) {
       var key = box.getAttribute("data-sl"), s = SL[key], inp = box.querySelector("input"), v = mainVal(s.id), isEmpty = !isFinite(v) || (s.empty && !(v > 0));
       if (!isFinite(v)) v = s.min;
@@ -378,7 +381,10 @@
     dragging = e.target;
     setMain(SL[box.getAttribute("data-sl")].id, e.target.value);
   });
-  root.addEventListener("change", function (e) { if (e.target.type === "range") { dragging = null; render(); } });
+  root.addEventListener("change", function (e) {
+    if (e.target.hasAttribute && e.target.hasAttribute("data-pv-oral")) { if (window.McScriptOral) McScriptOral.set(e.target.checked); return; }
+    if (e.target.type === "range") { dragging = null; render(); }
+  });
   root.addEventListener("click", function (e) {
     var pm = e.target.closest("[data-pm]");
     if (pm) {
